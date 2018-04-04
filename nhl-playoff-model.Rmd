@@ -275,6 +275,7 @@ colMeans(series[,dStats])
 ```{r}
 dStat_table <- series[,dStats]
 pca <- princomp(dStat_table, cor=TRUE)
+
 biplot(pca,choices=c(1,2),scale=0)
 biplot(pca,choices=c(1,3),scale=0)
 
@@ -377,3 +378,19 @@ colMeans(ten_fold_metrics)
 # 1,2 -> 0.232 0.230
 # 1,3 -> 0.222 0.220
 ```
+
+## Apply Current Model With Exact Specifications
+```{r}
+playoff_teams_2018 <- read.csv('playoff_teams_2018.csv')
+
+predict_matchup(home_team, away_team) {
+  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,]
+  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,]
+  raw_diffs <- home_stats[,dStats] - away_stats[,dStats]
+  for (i in 1:ncol(raw_diffs)) {
+    
+  }
+}
+
+```
+
