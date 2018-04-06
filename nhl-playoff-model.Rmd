@@ -384,11 +384,15 @@ colMeans(ten_fold_metrics)
 playoff_teams_2018 <- read.csv('playoff_teams_2018.csv')
 
 predict_matchup(home_team, away_team) {
-  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,]
-  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,]
-  raw_diffs <- home_stats[,dStats] - away_stats[,dStats]
-  for (i in 1:ncol(raw_diffs)) {
-    
+  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,dStats]
+  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,dStats]
+  raw_diffs <- home_stats - away_stats
+  std_diffs <- NULL
+  for (i in 1:length(dStats)) {
+    dStat <- dStats[i]
+    center <- pca$center[dStat]
+    scale <- pca$scale[dStat]
+    std_diffs[dStat] <- (raw_diffs[dStat]-center)/scale
   }
 }
 
