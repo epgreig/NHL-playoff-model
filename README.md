@@ -6,5 +6,3 @@ The purpose of this project is to create a regression model which can be used to
 
 There are three phases to creating this model. The first is to gather a database of team statistics from various sources for the past 10 NHL seasons, the second is to determine which statistical categories will be considered in the model, and the third is to fit a multivariable logistic regression model to the chosen variables.
 
-## Gathering Data
-
