@@ -18,7 +18,7 @@ Since the correlation coefficient is location-scale invariant, we can directly c
 4. 5v5 xGF% (Corsica1)
 5. 5v5 CF% (Corsica1)
 6. 5v5 HDCF% Within 1 (NaturalStatTrick)
-7. %Leading (morehockeystats)
+7. Time_Leading (morehockeystats)
 8. 5v5 Shooting% (Corsica1)
 9. 5v5 Save% (Corsica1)
 10. PP% (FoxSports)
@@ -130,17 +130,6 @@ head(series)
 colMeans(series[,dStats])
 ```
 
-## Factor Analysis
-```{r}
-dStat_table <- series[,dStats]
-pca <- princomp(dStat_table, cor=TRUE)
-plot(pca)
-
-colnames(series)
-prin_data <- series[,c('Year', 'Home', 'Away', 'Home_W.', 'Home_Won')]
-prin_data <- cbind(prin_data, pca$scores)
-prin_data
-```
 
 ## Logistic Regression
 The binary model runs regression only on whether the higher-seeded team won or lost. The weighted model is an abuse of glm because it uses non-integer success variables (win% in the series)
@@ -206,18 +195,11 @@ for(j in 1:200) {
 colMeans(ten_fold_metrics)
 ```
 
-## Sandbox Testing
-```{r}
-newdata <- data.frame(matrix(c(1,2,3,4,5,2,-3,-1,-5,4),nrow=2, byrow = TRUE))
-colnames(newdata) <- c('dGF%', 'd5v5_xGF%', 'dTime_Led', 'dPK%', 'dWins')
-predict(binary_model, newdata, type='response')
-```
-
 Binary-trained model always has lower log-loss, but that metric rewards conservative (40% to 60%) predictions.
 ## 2016 Comparison
 ```{r}
 seasons_for_2016 <- series[series$Year<2016,]
-binary_model_2016 <- glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dTime_Led` + `dPK%` + `dWins`, data=seasons_for_2016, family=binomial(link='logit'))
+binary_model_2016 <- glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dROWins`, data=seasons_for_2016, family=binomial(link='logit'))
 
 playoffs_2016 <- series[series$Year==2016,]
 playoffs_2016$bin_pred <- predict(binary_model_2016, playoffs_2016, type='response')
@@ -381,20 +363,34 @@ colMeans(ten_fold_metrics)
 
 ## Apply Current Model With Exact Specifications
 ```{r}
-playoff_teams_2018 <- read.csv('playoff_teams_2018.csv')
+playoff_teams_2018 <- read.csv('playoff_teams_2018.csv', check.names=FALSE)
 
-predict_matchup(home_team, away_team) {
-  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,dStats]
-  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,dStats]
+predict_matchup <- function(home_team, away_team) {
+  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,stats]
+  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,stats]
   raw_diffs <- home_stats - away_stats
-  std_diffs <- NULL
+  colnames(raw_diffs) <- dStats
+  nrm_diffs <- data.frame(0)
   for (i in 1:length(dStats)) {
     dStat <- dStats[i]
     center <- pca$center[dStat]
     scale <- pca$scale[dStat]
-    std_diffs[dStat] <- (raw_diffs[dStat]-center)/scale
+    nrm_diffs[,dStat] <- (raw_diffs[dStat]-center)/scale
   }
+  component_values <- data.frame(0)
+  for (j in 1:length(Comps)) {
+    component <- Comps[j]
+    loadings <- pca$loadings[,component]
+    component_values[,component] <- 0
+    for (k in 1:length(dStats)) {
+      stat <- dStats[k]
+      contribution <- loadings[stat] * nrm_diffs[stat]
+      component_values[,component] <- component_values[,component] + contribution
+    }
+  }
+  predict(binary_model, component_values[,Comps], type='response')
 }
 
+predict_matchup('BOS', 'ANA')
 ```
 
