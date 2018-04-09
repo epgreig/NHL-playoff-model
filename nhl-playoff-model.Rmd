@@ -13,16 +13,15 @@ Since the correlation coefficient is location-scale invariant, we can directly c
 
 ### Independent Variables:
 1. GF% (Corsica2)
-2. adjGF% (morehockeystats)
+2. AdjGF% (morehockeystats)
 3. 5v5 GF% (Corsica1)
 4. 5v5 xGF% (Corsica1)
 5. 5v5 CF% (Corsica1)
-6. 5v5 HDCF% Within 1 (NaturalStatTrick)
 7. Time_Leading (morehockeystats)
 8. 5v5 Shooting% (Corsica1)
 9. 5v5 Save% (Corsica1)
-10. PP% (FoxSports)
-11. PK% (FoxSports)
+10. PP% (NHL.com)
+11. PK% (NHL.com)
 12. Regular Season Wins (NHL.com)
 13. Regular Season Regulation+Overtime Wins (NHL.com)  
 Note that 1-3 are measurements of how many goals were scored by the team vs how many goals were allowed by the team. 4-6 constitute a variety of indicators of how many scoring opportunities a team generates compared to other teams during the season. 7 measures how effective a team is at gaining and maintaining leads in hockey games. 8-9 are primarily measurements of luck, but can be skewed by relatively strong shooters or goalies. 10-11 are special teams indicators, which also have a luck component, and tend to be less important in the playoffs. 12-13 are overall indicators of regular season performance.
@@ -32,21 +31,21 @@ Note that 1-3 are measurements of how many goals were scored by the team vs how 
 
 ## Import Data
 ```{r}
-corsica1 <- read.csv("corsica_5v5_08-17.csv", check.names=FALSE)
+corsica1 <- read.csv("input_csvs/corsica_5v5_08-17.csv", check.names=FALSE)
 corsica1$Season <- strtoi(substr(corsica1$Season, 6, 9))
 corsica1 <- corsica1[, c('Team', 'Season', 'CF%', 'GF%', 'xGF%', 'Sh%', 'Sv%')]
 
-corsica2 <- read.csv("corsica_all_08-17.csv", check.names=FALSE)
+corsica2 <- read.csv("input_csvs/corsica_all_08-17.csv", check.names=FALSE)
 corsica2$Season <- strtoi(substr(corsica2$Season, 6, 9))
 corsica2 <- corsica2[, c('Team', 'Season', 'allGF%', 'allGF', 'allGA')]
 
-stattrick <- read.csv("misc_stats_playoffwins.csv", check.names=FALSE)
-stattrick <- stattrick[, c('Team', 'Season', 'HDCF', 'Time Led', 'Playoff Wins', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'W', 'ROW')]
+morestats <- read.csv("input_csvs/misc_stats_playoffwins_08-17.csv", check.names=FALSE)
+morestats <- morestats[, c('Team', 'Season', 'HDCF', 'Time Led', 'Playoff Wins', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'W', 'ROW')]
 
-raw_data <- merge(merge(corsica1, corsica2, by=c("Team", "Season")), stattrick, by=c("Team", "Season"))
-raw_data$`adjGF%` <- with(raw_data, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
-raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'adjGF%', 'GF%', 'xGF%', 'CF%', 'HDCF', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'W', 'ROW', 'Playoff Wins')]
-colnames(raw_data) <- c('Team', 'Season', 'GF%', 'adjGF%', '5v5_GF%', '5v5_xGF%', '5v5_CF%', '5v5_HDCF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'Wins', 'ROWins', 'Playoff_Wins')
+raw_data <- merge(merge(corsica1, corsica2, by=c("Team", "Season")), morestats, by=c("Team", "Season"))
+raw_data$`AdjGF%` <- with(raw_data, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
+raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'GF%', 'xGF%', 'CF%', 'HDCF', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'W', 'ROW', 'Playoff Wins')]
+colnames(raw_data) <- c('Team', 'Season', 'GF%', 'AdjGF%', '5v5_GF%', '5v5_xGF%', '5v5_CF%', '5v5_HDCF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'Wins', 'ROWins', 'Playoff_Wins')
 
 head(raw_data)
 ```
@@ -71,6 +70,7 @@ rownames(correlations_5_10) <- c("5 years", "10 years")
 correlations_5_10[1,] <- cor(adj_data_5[,4:ncol(adj_data_5)-1], adj_data_5$`Playoff_Wins`)
 correlations_5_10[2,] <- cor(adj_data_10[,4:ncol(adj_data_10)-1], adj_data_10$`Playoff_Wins`)
 
+write.csv(correlations_5_10, 'output_csvs/correlations.csv')
 correlations_5_10
 ```
 
@@ -96,10 +96,10 @@ correlations_5_10
 
 ## Calculate Differences in Each Stat for Every Playoff Matchup
 ```{r}
-series <- read.csv("all_playoff_series.csv")
+series <- read.csv("input_csvs/all_playoff_series.csv")
 series$Home_Won <- round(series$Home_W., 0)
 
-stats <- c('GF%', '5v5_xGF%', 'PK%', 'ROWins')
+stats <- c('GF%', '5v5_xGF%', 'PK%', 'Time_Led', 'ROWins')
 dStats <- stats
 for (i in 1:length(stats)) {
   stat <- stats[i]
@@ -135,17 +135,17 @@ colMeans(series[,dStats])
 The binary model runs regression only on whether the higher-seeded team won or lost. The weighted model is an abuse of glm because it uses non-integer success variables (win% in the series)
 ```{r}
 regression_binary <- function(dataset) {
-  return(suppressWarnings(glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dROWins`,data=dataset, family=binomial(link='logit'))))
+  return(suppressWarnings(glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dTime_Led` + `dROWins`,data=dataset, family=binomial(link='logit'))))
 }
 
 regression_weighted <- function(dataset) {
-  return(suppressWarnings(glm(`Home_W.` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dROWins`,data=dataset, family=binomial(link='logit'))))
+  return(suppressWarnings(glm(`Home_W.` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dTime_Led` + `dROWins`,data=dataset, family=binomial(link='logit'))))
 }
 
 binary_model <- regression_binary(series)
 weighted_model <- regression_weighted(series)
 summary(binary_model)
-summary(weighted_model)
+write.csv(binary_model$coefficients, 'output_csvs/initial_model.csv')
 ```
 
 ## Cross Validation
@@ -219,10 +219,10 @@ mse(playoffs_2016$bin_pred, playoffs_2016$Home_Won)
 
 ## Calculate Differences in Each Stat for Every Playoff Matchup
 ```{r}
-series <- read.csv("all_playoff_series.csv")
+series <- read.csv("input_csvs/all_playoff_series.csv")
 series$Home_Won <- round(series$Home_W., 0)
 
-stats <- c('GF%', 'adjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+stats <- c('GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
 dStats <- stats
 for (i in 1:length(stats)) {
   stat <- stats[i]
@@ -273,7 +273,7 @@ pca$scale
 
 ### Comp.1: "Creating Wins"
 This metric represents your team's (negative) ability the win games.
-Value comes from GF%, adjGF%, Time_Led, and ROWins.
+Value comes from GF%, AdjGF%, Time_Led, and ROWins.
 ### Comp.2: "Quantity vs Quality"
 The higher this metric, the more your team relies on skill and high percentage plays to score. The lower this metric, the more your team relies on controlling the possession battle and generating a higher volume of shot attempts.
 Value comes from 5v5_Sh%, and negatively from xGF% and CF%
@@ -363,7 +363,7 @@ colMeans(ten_fold_metrics)
 
 ## Apply Current Model With Exact Specifications
 ```{r}
-playoff_teams_2018 <- read.csv('playoff_teams_2018.csv', check.names=FALSE)
+playoff_teams_2018 <- read.csv('input_csvs/playoff_teams_2018.csv', check.names=FALSE)
 
 predict_matchup <- function(home_team, away_team) {
   home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,stats]
@@ -394,3 +394,32 @@ predict_matchup <- function(home_team, away_team) {
 predict_matchup('BOS', 'ANA')
 ```
 
+```{r}
+squareerror <- function(x) {(x-1)^2}
+logloss <- function(x) {-log(x)}
+plot(squareerror, xlim=c(0,1), ylim=c(0,1), xlab='Predicted Probability', ylab='Mean Squared Prediction Error', main='Mean Squared Error when True Result is 1', col='blue')
+plot(logloss, xlim=c(0,1), ylim=c(0,5), xlab='Predicted Probability', ylab='Log Loss', main='Log Loss when True Result is 1', col='blue')
+```
+
+
+
+## IMPORT FOR PREDICTION
+```{r}
+corsica1_pred <- read.csv("input_csvs/2018/corsica_5v5_18.csv", check.names=FALSE)
+corsica1_pred$Season <- 2018
+corsica1_pred <- corsica1_pred[, c('Team', 'Season', 'CF%', 'GF%', 'xGF%', 'Sh%', 'Sv%')]
+
+corsica2_pred <- read.csv("input_csvs/2018/corsica_all_18.csv", check.names=FALSE)
+corsica2$Season <- 2018
+corsica2_pred <- corsica2_pred[, c('Team', 'Season', 'allGF%', 'allGF', 'allGA')]
+
+morestats_pred <- read.csv("input_csvs/2018/misc_stats_playoffwins_18.csv", check.names=FALSE)
+morestats_pred <- morestats_pred[, c('Team', 'Season', 'Time Led', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'ROW')]
+
+raw_data_pred <- merge(merge(corsica1_pred, corsica2_pred, by="Team"), morestats_pred, by="Team")
+raw_data_pred$`AdjGF%` <- with(raw_data_pred, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
+raw_data_pred <- raw_data_pred[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW')]
+colnames(raw_data_pred) <- c('Team', 'Season', 'GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+
+raw_data_pred
+```
