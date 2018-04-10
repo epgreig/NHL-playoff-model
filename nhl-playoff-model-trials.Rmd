@@ -257,15 +257,26 @@ colMeans(series[,dStats])
 ## Principal Component Analysis
 ```{r}
 dStat_table <- series[,dStats]
+dStat_table_flip <- -series[,dStats]
 pca <- princomp(dStat_table, cor=TRUE)
+pca2 <- princomp(rbind(dStat_table, dStat_table_flip), cor=TRUE)
 
-biplot(pca,choices=c(1,2),scale=0)
-biplot(pca,choices=c(1,3),scale=0)
+# biplot(pca,choices=c(1,2),scale=0)
+# biplot(pca,choices=c(1,3),scale=0)
 
 prin_data <- series[,c('Year', 'Home', 'Away', 'Home_W.', 'Home_Won')]
+prin_data_flip <- series[,c('Year', 'Home', 'Away', 'Home_W.', 'Home_Won')]
+orig_home <- prin_data_flip$Home
+prin_data_flip$Home <- prin_data_flip$Away
+prin_data_flip$Away <- orig_home
+prin_data_flip$Home_Won <- 1 - prin_data_flip$Home_Won
+prin_data2 <- rbind(prin_data, prin_data_flip)
+prin_data2 <- cbind(prin_data2, pca2$scores)
+
 prin_data <- cbind(prin_data, pca$scores)
 
 write.csv(pca$loadings, 'output_csvs/pca_loadings.csv')
+write.csv(pca2$loadings, 'output_csvs/pca2_loadings.csv')
 cumsum((pca$sdev^2)/sum(pca$sdev^2))
 barplot(pca$sdev^2, ylab='Variance Explained', xlab='Principal Components', main='NHL Playoffs Model PCA', col='maroon')
 ```
@@ -293,7 +304,7 @@ for (i in 1:num_factors) {
 }
 
 regression_binary <- function(dataset) {
-  return(suppressWarnings(glm(`Home_Won` ~ `Comp.1` + `Comp.2` + `Comp.3`,data=dataset, family=binomial(link='logit'))))
+  return(suppressWarnings(glm(`Home_Won` ~ `Comp.1` + `Comp.2` + `Comp.3`,data=dataset, weights=rep(0.5, nrow(dataset)), family=binomial(link='logit'))))
 }
 
 regression_weighted <- function(dataset) {
@@ -317,13 +328,17 @@ mse <- function(pred, actual){
 }
 
 ten_fold_cross_validate <- function(dataset){
+  dataset_flip <- dataset
+  dataset_flip$Comp.1 <- -dataset_flip$Comp.1
+  dataset_flip$Comp.2 <- -dataset_flip$Comp.2
+  dataset_flip$Comp.3 <- -dataset_flip$Comp.3
+  dataset_flip$Home_Won <- 1 - dataset_flip$Home_Won
+  dataset <- rbind(dataset, dataset_flip)
   series_shuffled <- dataset[sample(nrow(dataset)),]
   folds <- cut(seq(1,nrow(series_shuffled)),breaks=10,labels=FALSE)
   
   log_loss_binary <- NA
-  log_loss_weighted <- NA
   mse_binary <- NA
-  mse_weighted <- NA
   
   for (i in 1:10) {
     testRows <- which(folds==i,arr.ind=TRUE)
@@ -331,21 +346,17 @@ ten_fold_cross_validate <- function(dataset){
     train_data <- series_shuffled[-testRows,]
     
     fold_binary_model <- regression_binary(train_data)
-    fold_weighted_model <- regression_weighted(train_data)
   
     test_data$bin_pred <- predict(fold_binary_model, test_data[,Comps], type='response')
-    test_data$wgt_pred <- predict(fold_weighted_model, test_data[,Comps], type='response')
   
     log_loss_binary[i] <- logLoss(test_data$bin_pred, test_data$Home_Won)
-    log_loss_weighted[i] <- logLoss(test_data$wgt_pred, test_data$Home_Won)
     mse_binary[i] <- mse(test_data$bin_pred, test_data$Home_Won)
-    mse_weighted[i] <- mse(test_data$wgt_pred, test_data$Home_Won)
   }
-  return(c(mean(log_loss_binary), mean(log_loss_weighted), mean(mse_binary), mean(mse_weighted)))
+  return(c(mean(log_loss_binary), mean(mse_binary)))
 }
 
-ten_fold_metrics <- matrix(NA, nrow=200, ncol=4)
-colnames(ten_fold_metrics) <- c("Log Loss Binary", "Log Loss weighted", "Mean Squared Error Binary", "Mean Squared Error weighted")
+ten_fold_metrics <- matrix(NA, nrow=200, ncol=2)
+colnames(ten_fold_metrics) <- c("Log Loss Binary", "Mean Squared Error Binary")
 for(j in 1:200) {
   ten_fold_metrics[j,] <- ten_fold_cross_validate(prin_data)
 }
@@ -390,6 +401,37 @@ playoff_teams_2018$`AdjGF%` <- with(playoff_teams_2018, round(100*(allGF-GF_EN)/
 playoff_teams_2018 <- playoff_teams_2018[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW')]
 colnames(playoff_teams_2018) <- c('Team', 'Season', 'GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
 
+## 
+##
+## Bind playoff_teams_2018 with adj_data_10
+
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+
+all_regular_season_data <- adj_data_10[, c('Team', 'Season', stats)]
+all_regular_season_data <- rbind(all_regular_season_data, playoff_teams_2018)
+
+getDifferences <- function(row, df) {
+  df_year <- df[df$Season==row$Year,]
+  a1 <- df_year[as.character(df_year$Team)==as.character(row$Home),]
+  a2 <- df_year[as.character(df_year$Team)==as.character(row$Away),]
+  for (i in 1:length(stats)) {
+    stat <- stats[i]
+    dStat <- dStats[i]
+    row[dStat] <- a1[[stat]] - a2[[stat]]
+  }
+  return(row)
+}
+
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], regular_season_data)
+}
+
+head(series)
+colMeans(series[,dStats])
+```
+
+```{r}
 predict_matchup <- function(home_team, away_team) {
   home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,stats]
   away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,stats]
@@ -398,14 +440,14 @@ predict_matchup <- function(home_team, away_team) {
   nrm_diffs <- data.frame(0)
   for (i in 1:length(dStats)) {
     dStat <- dStats[i]
-    center <- pca$center[dStat]
-    scale <- pca$scale[dStat]
+    center <- pca2$center[dStat]
+    scale <- pca2$scale[dStat]
     nrm_diffs[,dStat] <- (raw_diffs[dStat]-center)/scale
   }
   component_values <- data.frame(0)
   for (j in 1:length(Comps)) {
     component <- Comps[j]
-    loadings <- pca$loadings[,component]
+    loadings <- pca2$loadings[,component]
     component_values[,component] <- 0
     for (k in 1:length(dStats)) {
       dStat <- dStats[k]
@@ -413,7 +455,7 @@ predict_matchup <- function(home_team, away_team) {
       component_values[,component] <- component_values[,component] + contribution
     }
   }
-  win_prob <- predict(binary_model, component_values[,Comps], type='response')
+  win_prob <- predict(model2, component_values[,Comps], type='response')
   c(-component_values[,'Comp.1'], -component_values[,'Comp.2'], component_values[,'Comp.3'], win_prob)
 }
 
@@ -428,5 +470,104 @@ predictions[6,] <- predict_matchup('BOS', 'TOR')
 predictions[7,] <- predict_matchup('WSH', 'CBJ')
 predictions[8,] <- predict_matchup('PIT', 'PHI')
 
-write.csv(predictions, 'output_csvs/predictions_2018.csv')
+write.csv(predictions, 'output_csvs/predictions2_2018.csv')
+```
+
+
+
+
+## END TO END
+```{r}
+stats <- c('GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+}
+
+num_factors <- 3
+Comps <- NULL
+for (i in 1:num_factors) {
+  Comps[i] <- paste0('Comp.', i)
+}
+
+## dataset contains Team, Season, dStats, and Home_Won
+pca_create <- function(dataset) {
+  dStat_table <- dataset[,dStats]
+  dStat_table_flip <- -dataset[,dStats]
+  pca <- princomp(rbind(dStat_table, dStat_table_flip), cor=TRUE)
+
+  prin_data <- dataset[,c('Year', 'Home', 'Away', 'Home_Won')]
+  prin_data_flip <- dataset[,c('Year', 'Home', 'Away', 'Home_Won')]
+  orig_home <- prin_data_flip$Home
+  prin_data_flip$Home <- prin_data_flip$Away
+  prin_data_flip$Away <- orig_home
+  prin_data_flip$Home_Won <- 1 - prin_data_flip$Home_Won
+  prin_data <- rbind(prin_data, prin_data_flip)
+  prin_data <- cbind(prin_data, pca$scores)
+
+  write.csv(pca$loadings, 'output_csvs/pca_sym_loadings.csv')
+  return(prin_data)
+}
+
+pca_glm <- function(pca_dataset, comps=Comps) {
+  # use comps somehow?
+  model <- glm(`Home_Won` ~ `Comp.1` + `Comp.2` + `Comp.3`,data=dataset, weights=rep(0.5, nrow(dataset)), family=binomial(link='logit'))
+  return(model)
+}
+
+pca_validate <- function(pca_dataset, num_comps=10) {
+  pca_validations <- matrix(0,nrow=num_comps, ncol=3)
+  colnames(pca_validations) <- c('Components', 'Log Loss', 'MSE')
+  
+  Comps <- c('Comp.1', 'Comp.3')
+  pca_validations[1,1] <- Comps
+  pca_validations[1,2:3] <- pca_iterate_validation(pca_dataset, Comps)
+  for (num in 2:num_comps) {
+    Comps <- NULL
+    for (i in 1:num) {
+    Comps[i] <- paste0('Comp.', i)
+    }
+    pca_validations[num,1] <- Comps
+    pca_validations[num,2:3] <- pca_iterate_validation(pca_dataset, Comps)
+  }
+}
+
+pca_cross_validate <- function(pca_dataset, comps) {
+  pca_dataset_shuffled <- pca_dataset[sample(nrow(pca_dataset)),]
+  folds <- cut(seq(1,nrow(pca_dataset_shuffled)),breaks=10,labels=FALSE)
+  
+  log_loss <- NA
+  mse <- NA
+  
+  for (i in 1:10) {
+    testRows <- which(folds==i,arr.ind=TRUE)
+    test_data <- pca_dataset_shuffled[testRows,]
+    train_data <- pca_dataset_shuffled[-testRows,]
+    
+    fold_model <- pca_glm(train_data, comps)
+  
+    test_data$bin_pred <- predict(fold_model, test_data[,comps], type='response')
+  
+    log_loss[i] <- logLoss(test_data$bin_pred, test_data$Home_Won)
+    mse[i] <- mse(test_data$bin_pred, test_data$Home_Won)
+  }
+  return(c(mean(log_loss), mean(mse)))
+}
+
+pca_iterate_validation <- function(pca_dataset, comps) {
+  iteration_errors <- matrix(NA, nrow=100, ncol=2)
+  colnames(iteration_errors) <- c("Log Loss Binary", "Mean Squared Error Binary")
+  for (i in 1:100) {
+    iteration_errors[i,] <- pca_cross_validate(pca_dataset, comps)
+  }
+  return(colMeans(iteration_errors))
+}
+
+## model for a particular year?
+##
+##
+##
+
 ```
