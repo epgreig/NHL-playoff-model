@@ -3,9 +3,9 @@
 ## 2018 Predictions
 
 ### First Round
-| Higher Seed | Lower Seed | Probability of Higher Seed Winning the Series |
+| Higher Seed | Lower Seed | Higher Seed Win Probability |
 | ----------- | ---------- | --------------------------------------------- |
-| NSH | COL | 75.6% |
+| NSH | COL |: 75.6% |
 | WPG	| MIN	| 65.7% |
 | VGK	| L.A	| 43.5% |	
 | ANA |	S.J	| 53.9% |	
@@ -37,6 +37,6 @@ In general, Principal Component Analysis results in transformations to the varia
 
 |	dGF%	|dAdjGF%	|d5v5_xGF%|d5v5_CF%	|dTime_Led|d5v5_Sh%	|d5v5_Sv%	|dPP%	|dPK%	|dROWins |
 |-------|---------|---------|---------|---------|---------|---------|-----|-----|--------|
-|Comp.1	|0.48	|0.47	|0.23	|0.20	|0.41	|0.21	|0.04	|0.21	|0.09	|0.44|
+|Comp.1	|:0.48	|0.47	|0.23	|0.20	|0.41	|0.21	|0.04	|0.21	|0.09	|0.44|
 |Comp.2	|-0.05	|-0.05	|0.53	|0.60	|-0.04	|-0.49	|-0.27	|-0.09	|0.16	|-0.13|
 |Comp.3	|0.19	|0.19	|-0.10	|0.01	|-0.13	|-0.19	|0.60	|-0.53	|0.47	|-0.05|
