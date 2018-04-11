@@ -3,8 +3,8 @@
 ## 2018 Predictions
 
 ### First Round
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_west.png)
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_east.png)
+![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_west.jpg)
+![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_east.jpg)
 
 ### Later Rounds
 Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
