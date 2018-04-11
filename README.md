@@ -4,7 +4,7 @@
 
 ### First Round
 | Higher Seed | Lower Seed | Higher Seed Win Probability |
-| ----------- | ---------- |:--------------------------------------------- |
+| ----------- | ---------- | --------------------------------------------- |
 | NSH | COL | 75.6% |
 | WPG	| MIN	| 65.7% |
 | VGK	| L.A	| 43.5% |	
@@ -35,8 +35,14 @@ Now these three compound statistics are used as input variables for a logistic r
 ## Principal Components
 In general, Principal Component Analysis results in transformations to the variables which are non-intuitive. However, my model luckily resulted in some components which have real-world interpretations.
 
-|	dGF%	|dAdjGF%	|d5v5_xGF%|d5v5_CF%	|dTime_Led|d5v5_Sh%	|d5v5_Sv%	|dPP%	|dPK%	|dROWins |
-|-------|---------|---------|---------|---------|---------|---------|-----|-----|--------|
-|Comp.1	|:0.48	|0.47	|0.23	|0.20	|0.41	|0.21	|0.04	|0.21	|0.09	|0.44|
-|Comp.2	|-0.05	|-0.05	|0.53	|0.60	|-0.04	|-0.49	|-0.27	|-0.09	|0.16	|-0.13|
-|Comp.3	|0.19	|0.19	|-0.10	|0.01	|-0.13	|-0.19	|0.60	|-0.53	|0.47	|-0.05|
+|Component|	ΔGF%	|ΔAdjGF%	|Δ5v5_xGF%|Δ5v5_CF%	|ΔTime_Led|Δ5v5_Sh%	|Δ5v5_Sv%	|ΔPP%	|ΔPK%	|ΔROWins |
+|---------|-------|---------|---------|---------|---------|---------|---------|-----|-----|--------|
+|Comp.1	|**0.48**	|**0.47**	|0.23	|0.20	|**0.41**	|0.21	|0.04	|0.21	|0.09	|**0.44**|
+|Comp.2	|-0.05	|-0.05	|**0.53**	|**0.60**	|-0.04	|**-0.49**	|-0.27	|-0.09	|0.16	|-0.13|
+|Comp.3	|0.19	|0.19	|-0.10	|0.01	|-0.13	|-0.19	|**0.60**	|**-0.53**	|**0.47**	|-0.05|
+
+**Component 1**: The first component accounts for the most variation in the dataset. It is weigted strongly by ΔGF%, ΔAdjGF%, ΔTime_Led, and ΔROWins. Clearly this is some sort of metric which explains how much better your team is at scoring goals and winning games than your opponent. So I call this component "_Outscoring and Winning_".
+
+**Component 2**: This, the second most influential component, if affected mostly by the possession-related statistics (expected goals for, and Corsi). Also, it has a large negative coefficient for shooting percentage. To me, this is a measurement of how much better your are at possessing the puck and generating many shots (albeit lower-quality shots) than your opponent. I call it "_Possession and Shot Volume_".
+
+**Component 3**: This component is driven by save percentage and penalty kill percentages. Additionally, it is negatively weighted by power play percentage. Clearly, the higher this metric is, the more your team plays a tighter, more defensively-minded game than your opponent. It is worth remarking that this component has a positive coefficient in the final model, so apparently teams that play a more low-scoring title have an advantage in the playoffs. I named it "_Defensively Oriented_".
