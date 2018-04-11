@@ -29,10 +29,11 @@ morestats <- morestats[, c('Team', 'Season', 'HDCF', 'Time Led', 'Playoff Wins',
 
 raw_data <- merge(merge(corsica1, corsica2, by=c("Team", "Season")), morestats, by=c("Team", "Season"))
 raw_data$`AdjGF%` <- with(raw_data, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
-raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW')]
-colnames(raw_data) <- c('Team', 'Season', stats)
+raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW', 'Playoff Wins')]
+colnames(raw_data) <- c('Team', 'Season', stats, 'Playoff_Wins')
 
 adj_data_10 <- raw_data[raw_data$`Playoff_Wins`>=0,]
+adj_data_10 <- adj_data_10[,c('Team', 'Season', stats)]
 
 corsica1_pred <- read.csv("input_csvs/2018/corsica_5v5_18.csv", check.names=FALSE)
 corsica1_pred$Season <- 2018
@@ -192,7 +193,11 @@ predict_year <- function(series_dataset, year=2018) {
   model <- pca_glm(na.omit(pca_dataset), Comps)
   pca_dataset <- pca_dataset[pca_dataset$Season==year,c('Home', 'Away', Comps)]
   pca_dataset$prediction <- predict(model, pca_dataset[,Comps], type='response')
-  return(pca_dataset[,c('Home', 'Away', 'prediction')])
+  return(pca_dataset[,c('Home', 'Away', Comps, 'prediction')])
 }
 
+select_model(series, 2018)
+predict_year(series, 2018)
+
 ```
+predict_year(series, 2018)
