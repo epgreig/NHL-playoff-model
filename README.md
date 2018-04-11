@@ -3,16 +3,7 @@
 ## 2018 Predictions
 
 ### First Round
-| Higher Seed | Lower Seed | Higher Seed Win Probability |
-| ----------- | ---------- | --------------------------------------------- |
-| NSH | COL | 75.6% |
-| WPG	| MIN	| 65.7% |
-| VGK	| L.A	| 43.5% |	
-| ANA |	S.J	| 53.9% |	
-| T.B	| N.J	| 65.4% |
-| BOS	| TOR	| 69.5% |
-| WSH	| CBJ	| 40.3% |	
-| PIT	| PHI	| 55.8% |
+![alt text](https://raw.githubusercontent.com/username/projectname/branch/path/to/img.png)
 
 ### Later Rounds
 Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
