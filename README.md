@@ -5,14 +5,14 @@
 ### First Round
 | Higher Seed | Lower Seed | Probability of Higher Seed Winning the Series |
 | ----------- | ---------- | --------------------------------------------- |
-| NSH | COL | 0.756 |
-| WPG	| MIN	| 0.657 |
-| VGK	| L.A	| 0.435 |	
-| ANA |	S.J	| 0.539 |	
-| T.B	| N.J	| 0.654 |
-| BOS	| TOR	| 0.695 |
-| WSH	| CBJ	| 0.403 |	
-| PIT	| PHI	| 0.558 |
+| NSH | COL | 75.6% |
+| WPG	| MIN	| 65.7% |
+| VGK	| L.A	| 43.5% |	
+| ANA |	S.J	| 53.9% |	
+| T.B	| N.J	| 65.4% |
+| BOS	| TOR	| 69.5% |
+| WSH	| CBJ	| 40.3% |	
+| PIT	| PHI	| 55.8% |
 
 ### Later Rounds
 Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
