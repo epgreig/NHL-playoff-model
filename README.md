@@ -1,15 +1,5 @@
 # NHL-playoff-model
 
-## 2018 Predictions
-
-### First Round
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_west.jpg)
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_east.jpg)
-
-### Later Rounds
-Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
-
-
 ## Purpose
 
 The purpose of this project is to create a regression model which can be used to predict the winner of any NHL playoff series. The approach taken in this project is not to compute a metric of each team's strength, but instead to directly compare the regular season statistics of the opposing teams to predict the winner of each series.
@@ -40,3 +30,13 @@ In general, Principal Component Analysis results in transformations to the varia
 **Component 3**: This component is driven by save percentage and penalty kill percentages. Additionally, it is negatively weighted by power play percentage. Clearly, the higher this metric is, the more your team plays a tighter, more defensively-minded game than your opponent. It is worth remarking that this component has a positive coefficient in the final model, so apparently teams that play a more low-scoring title have an advantage in the playoffs. I named it "_Defensively Oriented_".
 
 **Components 4-10**: The remaining components of the PCA results are seemingly quite random, and do not have an intuitive interpretation. Ad mentioned above, they also tend to overfit the training data, so they are excluded anyway. This way, the information stored in all 10 of those variables is compacted into 3 descriptive metrics which can be given coefficients by the logistic regression model.
+
+
+## 2018 Predictions
+
+### First Round
+![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_west.jpg)
+![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_east.jpg)
+
+### Later Rounds
+Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
