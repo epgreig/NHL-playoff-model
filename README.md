@@ -12,7 +12,7 @@ Data was collected from NHL.com, corsica.hockey, and MoreHockeyStats.com
 
 10 variables were selected to represent various dimensions of each team's regular season performance. These are Goals For%, Adjusted Goals For% (not including empty net goals), 5v5 Expected Goals For% (from corsica.hockey), 5v5 Corsi For%, 5v5 Shooting%, 5v5 Save%, Power Play%, Penalty Kill%, Average Time Spent Leading Per Game, and Number of Regulation+OT Wins.  
 These variables are highly correlated, and therefore are not well suited to be used directly as logistic regression variables. So after taking the difference between these statistics for the opposing teams in each playoff series, I run Principal Component Analysis (PCA) to extract the key dimensions of variation in the ten variables.  I use iterated 10-fold cross-validation to determine how many of these uncorrelated PCA components to use in the model (to find a balance between using maximum information while not overfitting the training set), which for 2018 turns out to be 3.  
-Now these three compound statistics are used as input variables for a logistic regression model against all completed playoff series' since the 2007-08 season.  
+Now these three compound statistics are used as input variables for a logistic regression model against all completed playoff series since the 2007-08 season.  
 
 ## Principal Components
 In general, Principal Component Analysis results in transformations to the variables which are non-intuitive. However, my model luckily resulted in some components which have real-world interpretations.
@@ -37,6 +37,3 @@ In general, Principal Component Analysis results in transformations to the varia
 ### First Round
 ![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_west.jpg)
 ![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/predictions_2018_visual_east.jpg)
-
-### Later Rounds
-Probabilities for future rounds will be released as the matchups are set. If you are curious, if the model is run for the entire playoff, the result is NSH 52.9% of beating BOS in the final.
