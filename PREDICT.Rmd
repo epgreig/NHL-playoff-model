@@ -234,9 +234,9 @@ predict_round <- function(series_dataset, year, round) {
 ```
 
 ```{r}
-select_model(series, 2018, 1)
+select_model(series, 2018, 4)
 ```
 
 ```{r}
-predict_round(series, 2018, 2)
+predict_round(series, 2018, 4)
 ```
