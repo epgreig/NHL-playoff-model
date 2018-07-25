@@ -7,7 +7,6 @@ output: pdf_document
 
 ## Import Data
 ```{r}
-library(randomForest)
 stats <- c('GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
 
 dStats <- stats
@@ -129,6 +128,9 @@ pca_create <- function(series_dataset, year, round) {
   prin_data_flip$Home <- prin_data_flip$Away
   prin_data_flip$Away <- orig_home
   prin_data_flip$Home_Won <- 1 - prin_data_flip$Home_Won
+  prin_data$Home_Adv <- 1
+  prin_data_flip$Home_Adv <- -1
+  
   prin_data <- rbind(prin_data, prin_data_flip)
   prin_data <- cbind(prin_data, pca$scores)
   
@@ -137,7 +139,7 @@ pca_create <- function(series_dataset, year, round) {
 }
 
 pca_glm <- function(pca_dataset, comps=Comps) {
-  dataset <- pca_dataset[,c(comps, 'Home_Won')]
+  dataset <- pca_dataset[,c(comps, 'Home_Adv', 'Home_Won')]
   model <- suppressWarnings(glm(`Home_Won` ~ .,data=dataset, weights=rep(0.5, nrow(dataset)), family=binomial(link='logit')))
   return(model)
 }
@@ -204,7 +206,7 @@ pca_cross_validate <- function(pca_dataset, comps) {
     
     fold_model <- pca_glm(train_data, comps)
     
-    test_data$bin_pred <- predict(fold_model, test_data[,comps], type='response')
+    test_data$bin_pred <- predict(fold_model, test_data[,c(comps, 'Home_Adv')], type='response')
   
     log_loss[i] <- logLoss(test_data$bin_pred, test_data$Home_Won)
     mse[i] <- mse(test_data$bin_pred, test_data$Home_Won)
@@ -226,10 +228,11 @@ predict_round <- function(series_dataset, year, round) {
   data_up_to_round <- series_dataset[series_dataset$Season<year | series_dataset$Round<=round,]
   pca_dataset <- pca_create(data_up_to_round, year=year, round=round)
   model <- pca_glm(na.omit(pca_dataset), Comps)
-  pca_dataset <- pca_dataset[pca_dataset$Season==year & pca_dataset$Round==round,c('Home', 'Away', 'Round', 'Home_Won', Comps)]
-  pca_dataset$prediction <- predict(model, pca_dataset[,Comps], type='response')
+  print(model)
+  pca_dataset <- pca_dataset[pca_dataset$Season==year & pca_dataset$Round==round,c('Home', 'Away', 'Round', 'Home_Adv', 'Home_Won', Comps)]
+  pca_dataset$prediction <- predict(model, pca_dataset[,c(Comps, 'Home_Adv')], type='response')
   pca_dataset$LogLoss <- with(pca_dataset, log(abs(1 - prediction - Home_Won)))
-  return(pca_dataset[1:(nrow(pca_dataset)/2),c('Home', 'Away', 'Round', Comps, 'prediction', 'LogLoss')])
+  return(pca_dataset[1:(nrow(pca_dataset)/2),c('Home', 'Away', 'Round', Comps, 'Home_Adv', 'prediction', 'LogLoss')])
 }
 ```
 
@@ -238,5 +241,5 @@ select_model(series, 2018, 4)
 ```
 
 ```{r}
-predict_round(series, 2018, 4)
+predict_round(series, 2018, 1)
 ```
