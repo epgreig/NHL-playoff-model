@@ -1,0 +1,432 @@
+---
+title: "NHL Playoff Wins Analysis"
+author: "Ethan Greig"
+date: "3/4/2018"
+output: pdf_document
+---
+
+# NHL Playoff Wins Analysis
+
+First, determine which variables are most strongly correlated with playoff success (measured in # of playoff wins). This will be done on a 5 year and 10 year timeframe. Each metric will be represented as a difference wrt the league average of that metric during that season.
+
+Since the correlation coefficient is location-scale invariant, we can directly compare how much these statistics correlate with playoff success, even when the statistics are percentages, counting totals, points-based, etc.
+
+### Independent Variables:
+1. GF% (Corsica2)
+2. AdjGF% (morehockeystats)
+3. 5v5 GF% (Corsica1)
+4. 5v5 xGF% (Corsica1)
+5. 5v5 CF% (Corsica1)
+7. Time_Leading (morehockeystats)
+8. 5v5 Shooting% (Corsica1)
+9. 5v5 Save% (Corsica1)
+10. PP% (NHL.com)
+11. PK% (NHL.com)
+12. Regular Season Wins (NHL.com)
+13. Regular Season Regulation+Overtime Wins (NHL.com)  
+Note that 1-3 are measurements of how many goals were scored by the team vs how many goals were allowed by the team. 4-6 constitute a variety of indicators of how many scoring opportunities a team generates compared to other teams during the season. 7 measures how effective a team is at gaining and maintaining leads in hockey games. 8-9 are primarily measurements of luck, but can be skewed by relatively strong shooters or goalies. 10-11 are special teams indicators, which also have a luck component, and tend to be less important in the playoffs. 12-13 are overall indicators of regular season performance.
+
+### Dependent Variables:
+1. Playoff Wins (NHL.com)
+
+## Import Data
+```{r}
+corsica1 <- read.csv("input_csvs/corsica_5v5_08-17.csv", check.names=FALSE)
+corsica1$Season <- strtoi(substr(corsica1$Season, 6, 9))
+corsica1 <- corsica1[, c('Team', 'Season', 'CF%', 'GF%', 'xGF', 'Sh%', 'Sv%')]
+
+corsica2 <- read.csv("input_csvs/corsica_all_08-17.csv", check.names=FALSE)
+corsica2$Season <- strtoi(substr(corsica2$Season, 6, 9))
+corsica2 <- corsica2[, c('Team', 'Season', 'allGF%', 'allGF', 'allGA')]
+
+morestats <- read.csv("input_csvs/misc_stats_playoffwins_08-17.csv", check.names=FALSE)
+morestats <- morestats[, c('Team', 'Season', 'HDCF', 'Time Led', 'Playoff Wins', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'W', 'ROW')]
+
+raw_data <- merge(merge(corsica1, corsica2, by=c("Team", "Season")), morestats, by=c("Team", "Season"))
+raw_data$`AdjGF%` <- with(raw_data, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
+raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'GF%', 'xGF%', 'CF%', 'HDCF', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'W', 'ROW', 'Playoff Wins')]
+colnames(raw_data) <- c('Team', 'Season', 'GF%', 'AdjGF%', '5v5_GF%', '5v5_xGF%', '5v5_CF%', '5v5_HDCF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'Wins', 'ROWins', 'Playoff_Wins')
+
+head(raw_data)
+```
+
+## Finalize Data
+```{r}
+adj_data <- raw_data
+adj_data_10 <- adj_data[adj_data$`Playoff_Wins`>=0,]
+head(adj_data_10)
+
+adj_data_5 <- adj_data_10[adj_data_10$Season>2012,]
+head(adj_data_5)
+```
+
+## Correlations With Playoff Wins
+```{r}
+stats <- colnames(adj_data_10)[4:ncol(adj_data_10)-1]
+correlations_5_10 <- data.frame(matrix(ncol=13, nrow=2))
+colnames(correlations_5_10) <- stats
+rownames(correlations_5_10) <- c("5 years", "10 years")
+
+correlations_5_10[1,] <- cor(adj_data_5[,4:ncol(adj_data_5)-1], adj_data_5$`Playoff_Wins`)
+correlations_5_10[2,] <- cor(adj_data_10[,4:ncol(adj_data_10)-1], adj_data_10$`Playoff_Wins`)
+
+write.csv(correlations_5_10, 'output_csvs/correlations.csv')
+correlations_5_10
+```
+
+## Correlations With Each Other
+```{r}
+correlations_5 <- cor(adj_data_5[,3:ncol(adj_data_5)])
+correlations_10 <- cor(adj_data_10[,4:ncol(adj_data_10)-1])
+write.csv(correlations_10, 'output_csvs/correlation_matrix.csv')
+
+eigenspace <- eigen(correlations_10) ## 6 or 9 factors
+n <- 6
+C <- as.matrix(eigenspace$vectors[,1:n])
+D <- matrix(0, dim(C)[2], dim(C)[2])
+diag(D) <- eigenspace$values[1:n]
+loadings <- C %*% sqrt(D)
+loadings
+
+S.h2 <- rowSums(loadings^2)
+S.h2
+
+S.u2 <- diag(correlations_10) - S.h2
+S.u2
+```
+
+## Calculate Differences in Each Stat for Every Playoff Matchup
+```{r}
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+
+stats <- c('GF%', '5v5_xGF%', 'PK%', 'Time_Led', 'ROWins')
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+  series[dStat] <- NA
+}
+
+regular_season_data <- adj_data_10[, c('Team', 'Season', stats)]
+
+getDifferences <- function(row, df) {
+  df_year <- df[df$Season==row$Year,]
+  a1 <- df_year[as.character(df_year$Team)==as.character(row$Home),]
+  a2 <- df_year[as.character(df_year$Team)==as.character(row$Away),]
+  for (i in 1:length(stats)) {
+    stat <- stats[i]
+    dStat <- dStats[i]
+    row[dStat] <- a1[[stat]] - a2[[stat]]
+  }
+  return(row)
+}
+
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], regular_season_data)
+}
+
+head(series)
+colMeans(series[,dStats])
+```
+
+
+## Logistic Regression
+The binary model runs regression only on whether the higher-seeded team won or lost. The weighted model is an abuse of glm because it uses non-integer success variables (win% in the series)
+```{r}
+regression_binary <- function(dataset) {
+  return(suppressWarnings(glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dTime_Led` + `dROWins`,data=dataset, family=binomial(link='logit'))))
+}
+
+regression_weighted <- function(dataset) {
+  return(suppressWarnings(glm(`Home_W.` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dTime_Led` + `dROWins`,data=dataset, family=binomial(link='logit'))))
+}
+
+binary_model <- regression_binary(series)
+weighted_model <- regression_weighted(series)
+summary(binary_model)
+write.csv(binary_model$coefficients, 'output_csvs/initial_model.csv')
+```
+
+## Cross Validation
+```{r}
+logLoss <- function(pred, actual){
+  -1*mean(log(pred[model.matrix(~ actual + 0) - pred > 0]))
+}
+
+mse <- function(pred, actual){
+  mean((pred-actual)^2)
+}
+
+ten_fold_cross_validate <- function(dataset){
+  series_shuffled <- dataset[sample(nrow(dataset)),]
+  folds <- cut(seq(1,nrow(series_shuffled)),breaks=10,labels=FALSE)
+  
+  log_loss_binary <- NA
+  log_loss_weighted <- NA
+  mse_binary <- NA
+  mse_weighted <- NA
+  
+  for (i in 1:10) {
+    testRows <- which(folds==i,arr.ind=TRUE)
+    test_data <- series_shuffled[testRows,]
+    train_data <- series_shuffled[-testRows,]
+    
+    fold_binary_model <- regression_binary(train_data)
+    fold_weighted_model <- regression_weighted(train_data)
+  
+    test_data$bin_pred <- predict(fold_binary_model, test_data[,dStats], type='response')
+    test_data$wgt_pred <- predict(fold_weighted_model, test_data[,dStats], type='response')
+  
+    log_loss_binary[i] <- logLoss(test_data$bin_pred, test_data$Home_Won)
+    log_loss_weighted[i] <- logLoss(test_data$wgt_pred, test_data$Home_Won)
+    mse_binary[i] <- mse(test_data$bin_pred, test_data$Home_Won)
+    mse_weighted[i] <- mse(test_data$wgt_pred, test_data$Home_Won)
+  }
+  return(c(mean(log_loss_binary), mean(log_loss_weighted), mean(mse_binary), mean(mse_weighted)))
+}
+
+ten_fold_metrics <- matrix(NA, nrow=200, ncol=4)
+colnames(ten_fold_metrics) <- c("Log Loss Binary", "Log Loss weighted", "Mean Squared Error Binary", "Mean Squared Error weighted")
+for(j in 1:200) {
+  ten_fold_metrics[j,] <- ten_fold_cross_validate(series)
+}
+
+colMeans(ten_fold_metrics)
+```
+
+Binary-trained model always has lower log-loss, but that metric rewards conservative (40% to 60%) predictions.
+## 2016 Comparison
+```{r}
+seasons_for_2016 <- series[series$Year<2016,]
+binary_model_2016 <- glm(`Home_Won` ~ `dGF%` + `d5v5_xGF%` + `dPK%` + `dROWins`, data=seasons_for_2016, family=binomial(link='logit'))
+
+playoffs_2016 <- series[series$Year==2016,]
+playoffs_2016$bin_pred <- predict(binary_model_2016, playoffs_2016, type='response')
+
+summary(binary_model_2016)
+playoffs_2016[c('Home', 'Away', 'Home_Won', 'bin_pred')]
+logLoss(playoffs_2016$bin_pred, playoffs_2016$Home_Won)
+mse(playoffs_2016$bin_pred, playoffs_2016$Home_Won)
+```
+
+
+
+
+
+
+## FACTOR ANALYSIS
+
+## Calculate Differences in Each Stat for Every Playoff Matchup
+```{r}
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+
+stats <- c('GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+  series[dStat] <- NA
+}
+
+regular_season_data <- adj_data_10[, c('Team', 'Season', stats)]
+
+getDifferences <- function(row, df) {
+  df_year <- df[df$Season==row$Year,]
+  a1 <- df_year[as.character(df_year$Team)==as.character(row$Home),]
+  a2 <- df_year[as.character(df_year$Team)==as.character(row$Away),]
+  for (i in 1:length(stats)) {
+    stat <- stats[i]
+    dStat <- dStats[i]
+    row[dStat] <- a1[[stat]] - a2[[stat]]
+  }
+  return(row)
+}
+
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], regular_season_data)
+}
+
+head(series)
+colMeans(series[,dStats])
+```
+
+## Principal Component Analysis
+```{r}
+dStat_table <- series[,dStats]
+pca <- princomp(dStat_table, cor=TRUE)
+
+biplot(pca,choices=c(1,2),scale=0)
+biplot(pca,choices=c(1,3),scale=0)
+
+prin_data <- series[,c('Year', 'Home', 'Away', 'Home_W.', 'Home_Won')]
+prin_data <- cbind(prin_data, pca$scores)
+
+write.csv(pca$loadings, 'output_csvs/pca_loadings.csv')
+cumsum((pca$sdev^2)/sum(pca$sdev^2))
+barplot(pca$sdev^2, ylab='Variance Explained', xlab='Principal Components', main='NHL Playoffs Model PCA', col='maroon')
+```
+## Naming of Principal Components
+
+### Comp.1: "Outscoring Opponents"
+This metric represents your team's (negative) ability the win games.
+Value comes from GF%, AdjGF%, Time_Led, and ROWins.
+### Comp.2: "Quantity vs Quality"
+The higher this metric, the more your team relies on skill and high percentage plays to score. The lower this metric, the more your team relies on controlling the possession battle and generating a higher volume of shot attempts.
+Value comes from 5v5_Sh%, and negatively from xGF% and CF%
+### Comp.3: "Defensive vs Offensive"
+This metric is higher for teams which tend to play tight, low-scoring games, and lower for teams who play a shootout-style high-scoring game.
+Value comes from Sv% and PK%, and negatively from PP%
+
+## Logistic Regression
+The binary model runs regression only on whether the higher-seeded team won or lost. The weighted model is an abuse of glm because it uses non-integer success variables (win% in the series)
+
+
+```{r}
+num_factors <- 3
+Comps <- NULL
+for (i in 1:num_factors) {
+  Comps[i] <- paste0('Comp.', i)
+}
+
+regression_binary <- function(dataset) {
+  return(suppressWarnings(glm(`Home_Won` ~ `Comp.1` + `Comp.2` + `Comp.3`,data=dataset, family=binomial(link='logit'))))
+}
+
+regression_weighted <- function(dataset) {
+  return(suppressWarnings(glm(`Home_W.` ~ `Comp.1` + `Comp.2` + `Comp.3`,data=dataset, family=binomial(link='logit'))))
+}
+
+binary_model <- regression_binary(prin_data)
+weighted_model <- regression_weighted(prin_data)
+summary(binary_model)
+summary(weighted_model)
+```
+
+## Cross Validation
+```{r}
+logLoss <- function(pred, actual){
+  -1*mean(log(pred[model.matrix(~ actual + 0) - pred > 0]))
+}
+
+mse <- function(pred, actual){
+  mean((pred-actual)^2)
+}
+
+ten_fold_cross_validate <- function(dataset){
+  series_shuffled <- dataset[sample(nrow(dataset)),]
+  folds <- cut(seq(1,nrow(series_shuffled)),breaks=10,labels=FALSE)
+  
+  log_loss_binary <- NA
+  log_loss_weighted <- NA
+  mse_binary <- NA
+  mse_weighted <- NA
+  
+  for (i in 1:10) {
+    testRows <- which(folds==i,arr.ind=TRUE)
+    test_data <- series_shuffled[testRows,]
+    train_data <- series_shuffled[-testRows,]
+    
+    fold_binary_model <- regression_binary(train_data)
+    fold_weighted_model <- regression_weighted(train_data)
+  
+    test_data$bin_pred <- predict(fold_binary_model, test_data[,Comps], type='response')
+    test_data$wgt_pred <- predict(fold_weighted_model, test_data[,Comps], type='response')
+  
+    log_loss_binary[i] <- logLoss(test_data$bin_pred, test_data$Home_Won)
+    log_loss_weighted[i] <- logLoss(test_data$wgt_pred, test_data$Home_Won)
+    mse_binary[i] <- mse(test_data$bin_pred, test_data$Home_Won)
+    mse_weighted[i] <- mse(test_data$wgt_pred, test_data$Home_Won)
+  }
+  return(c(mean(log_loss_binary), mean(log_loss_weighted), mean(mse_binary), mean(mse_weighted)))
+}
+
+ten_fold_metrics <- matrix(NA, nrow=200, ncol=4)
+colnames(ten_fold_metrics) <- c("Log Loss Binary", "Log Loss weighted", "Mean Squared Error Binary", "Mean Squared Error weighted")
+for(j in 1:200) {
+  ten_fold_metrics[j,] <- ten_fold_cross_validate(prin_data)
+}
+
+colMeans(ten_fold_metrics)
+# 1-13 -> 0.238
+# 1-8 -> 0.232
+# 1-6 -> 0.232
+# 1-5 -> 0.229
+# 1-4 -> 0.226 0.225
+# 1,2,3 -> 0.223 0.222 0.221
+# 1,2 -> 0.232 0.230
+# 1,3 -> 0.222 0.220
+```
+
+## Plots for presentation
+```{r}
+squareerror <- function(x) {(x-1)^2}
+logloss <- function(x) {-log(x)}
+plot(squareerror, xlim=c(0,1), ylim=c(0,1), xlab='Predicted Probability', ylab='Mean Squared Prediction Error', main='Mean Squared Error when True Result is 1', col='blue')
+plot(logloss, xlim=c(0,1), ylim=c(0,5), xlab='Predicted Probability', ylab='Log Loss', main='Log Loss when True Result is 1', col='blue')
+```
+
+
+
+## IMPORT FOR PREDICTION
+```{r}
+corsica1_pred <- read.csv("input_csvs/2018/corsica_5v5_18.csv", check.names=FALSE)
+corsica1_pred$Season <- 2018
+corsica1_pred <- corsica1_pred[, c('Team', 'Season', 'CF%', 'GF%', 'xGF%', 'Sh%', 'Sv%')]
+
+corsica2_pred <- read.csv("input_csvs/2018/corsica_all_18.csv", check.names=FALSE)
+corsica2_pred$Season <- 2018
+corsica2_pred <- corsica2_pred[, c('Team', 'Season', 'allGF%', 'allGF', 'allGA')]
+
+morestats_pred <- read.csv("input_csvs/2018/misc_stats_playoffwins_18.csv", check.names=FALSE)
+morestats_pred$Season <- 2018
+morestats_pred <- morestats_pred[, c('Team', 'Season', 'Time Led', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'ROW')]
+
+playoff_teams_2018 <- merge(merge(corsica1_pred, corsica2_pred, by=c("Team","Season")), morestats_pred, by=c("Team","Season"))
+playoff_teams_2018$`AdjGF%` <- with(playoff_teams_2018, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
+playoff_teams_2018 <- playoff_teams_2018[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW')]
+colnames(playoff_teams_2018) <- c('Team', 'Season', 'GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+
+predict_matchup <- function(home_team, away_team) {
+  home_stats <- playoff_teams_2018[playoff_teams_2018$Team==home_team,stats]
+  away_stats <- playoff_teams_2018[playoff_teams_2018$Team==away_team,stats]
+  raw_diffs <- home_stats - away_stats
+  colnames(raw_diffs) <- dStats
+  nrm_diffs <- data.frame(0)
+  for (i in 1:length(dStats)) {
+    dStat <- dStats[i]
+    center <- pca$center[dStat]
+    scale <- pca$scale[dStat]
+    nrm_diffs[,dStat] <- (raw_diffs[dStat]-center)/scale
+  }
+  component_values <- data.frame(0)
+  for (j in 1:length(Comps)) {
+    component <- Comps[j]
+    loadings <- pca$loadings[,component]
+    component_values[,component] <- 0
+    for (k in 1:length(dStats)) {
+      dStat <- dStats[k]
+      contribution <- loadings[dStat] * nrm_diffs[dStat]
+      component_values[,component] <- component_values[,component] + contribution
+    }
+  }
+  win_prob <- predict(binary_model, component_values[,Comps], type='response')
+  c(-component_values[,'Comp.1'], -component_values[,'Comp.2'], component_values[,'Comp.3'], win_prob)
+}
+
+predictions <- data.frame(matrix(0, nrow=8, ncol=4))
+colnames(predictions) <- c('nComp.1', 'nComp.2', 'Comp.3', 'Prediction')
+predictions[1,] <- predict_matchup('NSH', 'COL')
+predictions[2,] <- predict_matchup('WPG', 'MIN')
+predictions[3,] <- predict_matchup('VGK', 'L.A')
+predictions[4,] <- predict_matchup('ANA', 'S.J')
+predictions[5,] <- predict_matchup('T.B', 'N.J')
+predictions[6,] <- predict_matchup('BOS', 'TOR')
+predictions[7,] <- predict_matchup('WSH', 'CBJ')
+predictions[8,] <- predict_matchup('PIT', 'PHI')
+
+write.csv(predictions, 'output_csvs/predictions_2018.csv')
+```
