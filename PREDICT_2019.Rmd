@@ -1,0 +1,155 @@
+---
+title: "PREDICT_2019"
+author: "Ethan Greig"
+date: "11/17/2018"
+output: pdf_document
+---
+
+## Import Raw Team Data
+
+# import from morehockeystats: ENGF, ENGA, B-S stats, Time_Led (set custom format h:mm, calc *1440, /60)
+#   *move WPG for ATL years, and move ARI for 2015
+# import from natural stat trick: W, ROW, HDCF%_55
+# import from Fox Sports: PP%, PK% (paste as text, text->columns w/ tab delim)
+```{r}
+corsica_55 <- read.csv("input_csvs/corsica_5v5_08-18.csv", check.names=FALSE)
+corsica_55$Season <- strtoi(substr(corsica_55$Season, 6, 9))
+corsica_55 <- corsica_55[, c('Team', 'Season', 'CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55')]
+
+corsica_all <- read.csv("input_csvs/corsica_all_08-18.csv", check.names=FALSE)
+corsica_all$Season <- strtoi(substr(corsica_all$Season, 6, 9))
+corsica_all <- corsica_all[, c('Team', 'Season', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF_all', 'GA_all', 'GF%_all', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all')]
+
+other_data <- read.csv("input_csvs/misc_stats_08-18.csv", check.names=FALSE)
+other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF_all', 'ENGA_all', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')]
+
+stats <- c('CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF%_all', 'ENGD', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')
+
+raw_stats <- merge(merge(corsica_55, corsica_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
+raw_stats$`ENGD` <- with(raw_stats, ENGF_all-ENGA_all)
+raw_stats <- raw_stats[, c('Team', 'Season', stats)]
+raw_stats
+```
+
+
+## Create Matchups
+```{r}
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+}
+
+dStats <- make.names(dStats)
+
+# Import series data, add empty columns for stat differences
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series = series[series$Season<2018,]
+series$Home_Won <- round(series$Home_W., 0)
+for(i in 1:length(dStats)) {
+  dStat <- dStats[i]
+  series[,dStat] <- NA
+}
+
+# define function to extract stat differences given two teams and a season
+getDifferences <- function(row, df) {
+  df_year <- df[df$Season==row$Season,]
+  home_team <- df_year[as.character(df_year$Team)==as.character(row$Home),]
+  away_team <- df_year[as.character(df_year$Team)==as.character(row$Away),]
+  for (i in 1:length(stats)) {
+    stat <- stats[i]
+    dStat <- dStats[i]
+    row[dStat] <- home_team[stat] - away_team[stat]
+  }
+  return(row)
+}
+
+# fill series data frame with stat differences from regular season
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], raw_stats)
+}
+
+series
+```
+
+# Remove highly-correlated features
+```{r}
+corr <- cor(series[,c('Home_Won', dStats)])
+corr_vars <- names(data.frame(corr))[which(corr>0.85 & corr<1, arr.ind = TRUE)[, "col"]]
+cor(series[,c('Home_Won', corr_vars)])
+
+# Judgement call on which of corr pairs to remove
+dStats <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA._all', 'dBerg')]
+```
+
+## Define Some Metrics
+```{r}
+logLoss <- function(pred, actual){
+  -1*mean(log(pred[model.matrix(~ actual + 0) - pred > 0]))
+}
+
+acc <- function(pred, actual){
+  wlpred <- round(pred, 0)
+  correct <- wlpred==actual
+  num_correct <- sum(correct, na.rm=TRUE)
+  return(num_correct/length(correct))
+}
+```
+
+## Symmetric Data Frame
+```{r}
+df <- series[,c('Home_Won', dStats)] # keep only relevant numerical rows. Home_Adv?
+df_flip <- -df
+df_flip$Home_Won <- 1-df$Home_Won
+df_symm <- rbind(df, df_flip)
+df_symm[,dStats] <- data.frame(scale(df_symm[,dStats]))
+```
+
+## Cross-Validation
+```{r}
+library(randomForest)
+
+cv <- function(data, model='log', nfolds=5, nruns=150) {
+  n <- nrow(data)
+  results <- matrix(nrow=nruns, ncol=2)
+  
+  for (i in 1:nruns) {
+    data_shuffled <- data[sample(n),]
+    folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
+    
+    log_loss <- NA
+    accuracy <- NA
+    
+    for (j in 1:nfolds) {
+    test_rows <- which(folds==j,arr.ind=TRUE)
+    test_data <- data_shuffled[test_rows,]
+    train_data <- data_shuffled[-test_rows,]
+    
+    if (model=='log') {
+      fold_model <- suppressWarnings(glm(`Home_Won` ~ .,data=train_data, family=binomial(link='logit')))
+    }
+    else if (model=='rf') {
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data))
+    }
+    
+    test_data$fold_prediction <- predict(fold_model, test_data[,dStats], type='response')
+  
+    log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
+    accuracy[j] <- acc(test_data$fold_prediction, test_data$Home_Won)
+    }
+    
+  results[i,] = c(mean(log_loss), mean(accuracy))
+  }
+  
+return(colMeans(results))
+}
+```
+
+## Benchmark Models
+```{r}
+cv(df, nfolds=5)
+cv(df_symm, nfolds=5)
+cv(df, nfolds=10)
+cv(df_symm, nfolds=10)
+```

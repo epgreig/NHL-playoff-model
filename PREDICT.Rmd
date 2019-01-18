@@ -7,7 +7,7 @@ output: pdf_document
 
 ## Import Data
 ```{r}
-stats <- c('GF%', 'AdjGF%', '5v5_xGF%', '5v5_CF%', 'Time_Led', '5v5_Sh%', '5v5_Sv%', 'PP%', 'PK%', 'ROWins')
+stats <- c('GF%_all', 'GF%_adj', 'xGF%_55', 'CF%_55', 'Time_Led', 'Sh%_55', 'Sv%_55', 'PP%', 'PK%', 'ROWins')
 
 dStats <- stats
 for (i in 1:length(stats)) {
@@ -33,18 +33,18 @@ acc <- function(pred, actual){
 
 corsica1 <- read.csv("input_csvs/corsica_5v5_08-17.csv", check.names=FALSE)
 corsica1$Season <- strtoi(substr(corsica1$Season, 6, 9))
-corsica1 <- corsica1[, c('Team', 'Season', 'CF%', 'GF%', 'xGF%', 'Sh%', 'Sv%')]
+corsica1 <- corsica1[, c('Team', 'Season', 'CF%_55', 'GF%_55', 'xGF%_55', 'Sh%_55', 'Sv%_55')]
 
 corsica2 <- read.csv("input_csvs/corsica_all_08-17.csv", check.names=FALSE)
 corsica2$Season <- strtoi(substr(corsica2$Season, 6, 9))
-corsica2 <- corsica2[, c('Team', 'Season', 'allGF%', 'allGF', 'allGA')]
+corsica2 <- corsica2[, c('Team', 'Season', 'GF%_all', 'GF_all', 'GA_all')]
 
 morestats <- read.csv("input_csvs/misc_stats_playoffwins_08-17.csv", check.names=FALSE)
-morestats <- morestats[, c('Team', 'Season', 'HDCF', 'Time Led', 'Playoff Wins', 'GF_EN', 'GA_EN', 'PP%', 'PK%', 'W', 'ROW')]
+morestats <- morestats[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'Playoff Wins', 'ENGF_all', 'ENGA_all', 'PP%', 'PK%', 'W', 'ROW')]
 
 raw_data <- merge(merge(corsica1, corsica2, by=c("Team", "Season")), morestats, by=c("Team", "Season"))
-raw_data$`AdjGF%` <- with(raw_data, round(100*(allGF-GF_EN)/(allGF-GF_EN+allGA-GA_EN),2))
-raw_data <- raw_data[, c('Team', 'Season', 'allGF%', 'AdjGF%', 'xGF%', 'CF%', 'Time Led', 'Sh%', 'Sv%', 'PP%', 'PK%', 'ROW', 'Playoff Wins')]
+raw_data$`GF%_adj` <- with(raw_data, round(100*(GF_all-ENGF_all)/(GF_all-ENGF_all+GA_all-ENGA_all),2))
+raw_data <- raw_data[, c('Team', 'Season', 'GF%_all', 'GF%_adj', 'xGF%_55', 'CF%_55', 'Time_Led', 'Sh%_55', 'Sv%_55', 'PP%', 'PK%', 'ROW', 'Playoff Wins')]
 colnames(raw_data) <- c('Team', 'Season', stats, 'Playoff_Wins')
 
 adj_data_10 <- raw_data[raw_data$`Playoff_Wins`>=0,]
