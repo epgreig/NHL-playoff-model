@@ -1,0 +1,76 @@
+---
+title: "hyperparameter_tuning.Rmd"
+author: "Ethan Greig"
+date: "1/20/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+```
+
+## Hyperparameter Tuning on RF model
+```{r}
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+
+hyper_params <- function(mtrys, nodesizes, ntrees=4000) {
+  results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
+  data <- df
+  data$Home_Won <- as.factor(data$Home_Won)
+  
+  for (i in mtrys) {
+    for (j in nodesizes) {
+      set.seed(1)
+      temp_model <- randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j)
+      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- temp_model$err.rate[ntrees,1]
+    }
+    print(i)
+  }
+  
+  rownames(results) <- paste('mtry', mtrys, sep='=')
+  colnames(results) <- paste('nodesize', nodesizes, sep='=')
+  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_27_features.csv", sep=',', col.names=NA)
+}
+
+# Grids attempted:(mtrys x nodesizes)
+# hyper_params(mtrys=1:25, nodesizes=1:25)
+# hyper_params(mtrys=1:15, nodesizes=16:35)
+# hyper_params(mtrys=1:8, nodesizes=28:60)
+# hyper_params(mtrys=2:8, nodesizes=50:69)
+# hyper_params(mtrys=2:8, nodesizes=50:59, ntrees=6000)
+# hyper_params(mtrys=2:8, nodesizes=55:65, ntrees=10000)
+# result: mtry=6, nodesize=60
+```
+
+```{r}
+library(knitr)
+source(purl('benchmark_models.Rmd', output = tempfile()))
+# defines the cross-validation functions
+```
+
+## Tuned Random Forest (Regression) Benchmark
+```{r}
+cv_rf_reg(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
+# BENCHMARK
+# Log Loss: 0.67 (sd 0.10)
+# Accuracy: 63% (sd 0.12)
+
+# AFTER TUNING
+# Log Loss: 0.654 (sd 0.08)
+# Accuracy: 63% (sd 0.12)
+```
+
+## Tuned Random Forest (Classification) Benchmark
+```{r}
+cv_rf_class(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
+# BENCHMARK
+# Log Loss: 0.67 (sd 0.10)
+# Accuracy: 63% (sd 0.12)
+
+# AFTER TUNING
+# Log Loss: 0.67 (sd 0.10)
+# Accuracy: 63% (sd 0.12)
+#(same)
+```
