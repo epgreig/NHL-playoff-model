@@ -15,9 +15,8 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 ```{r}
 # Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
 
-hyper_params <- function(mtrys, nodesizes, ntrees=4000) {
+hyper_params <- function(data, mtrys, nodesizes, ntrees=4000) {
   results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
-  data <- df
   data$Home_Won <- as.factor(data$Home_Won)
   
   for (i in mtrys) {
@@ -34,13 +33,14 @@ hyper_params <- function(mtrys, nodesizes, ntrees=4000) {
   write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_27_features.csv", sep=',', col.names=NA)
 }
 
-# Grids attempted:(mtrys x nodesizes)
-# hyper_params(mtrys=1:25, nodesizes=1:25)
-# hyper_params(mtrys=1:15, nodesizes=16:35)
-# hyper_params(mtrys=1:8, nodesizes=28:60)
-# hyper_params(mtrys=2:8, nodesizes=50:69)
-# hyper_params(mtrys=2:8, nodesizes=50:59, ntrees=6000)
-# hyper_params(mtrys=2:8, nodesizes=55:65, ntrees=10000)
+# Grids attempted:
+# hyper_params(df, mtrys=1:25, nodesizes=1:25)
+# hyper_params(df, mtrys=1:15, nodesizes=16:35)
+# hyper_params(df, mtrys=1:8, nodesizes=28:60)
+# hyper_params(df, mtrys=2:8, nodesizes=50:69)
+# hyper_params(df, mtrys=2:8, nodesizes=50:59, ntrees=6000)
+# hyper_params(df, mtrys=2:8, nodesizes=55:65, ntrees=10000)
+
 # result: mtry=6, nodesize=60
 ```
 
@@ -50,7 +50,7 @@ source(purl('benchmark_models.Rmd', output = tempfile()))
 # defines the cross-validation functions
 ```
 
-## Tuned Random Forest (Regression) Benchmark
+## Calculate Tuned Random Forest (Regression) Results
 ```{r}
 cv_rf_reg(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
 # BENCHMARK
@@ -62,9 +62,9 @@ cv_rf_reg(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
 # Accuracy: 63% (sd 0.12)
 ```
 
-## Tuned Random Forest (Classification) Benchmark
+## Calculate Tuned Random Forest (Classification) Results
 ```{r}
-cv_rf_class(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
+cv_rf_class(df, nfolds=10, nruns=16, mtry=6, nodesize=60)
 # BENCHMARK
 # Log Loss: 0.67 (sd 0.10)
 # Accuracy: 63% (sd 0.12)

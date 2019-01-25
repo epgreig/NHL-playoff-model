@@ -22,8 +22,9 @@ corsica_all <- corsica_all[, c('Team', 'Season', 'CF%_all', 'CF/60_all', 'CA/60_
 
 other_data <- read.csv("input_csvs/misc_stats_08-18.csv", check.names=FALSE)
 other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')]
+other_data$ENGD <- other_data$ENGF - other_data$ENGA
 
-stats <- c('CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF%_all', 'ENGF', 'ENGA', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')
+stats <- c('CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF%_all', 'ENGD', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')
 
 raw_stats <- merge(merge(corsica_55, corsica_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
 raw_stats <- raw_stats[, c('Team', 'Season', stats)]
@@ -77,8 +78,8 @@ series
 corr <- cor(series[,c('Home_Won', dStats)])
 corr_vars <- names(data.frame(corr))[which(corr>0.88 & corr<1, arr.ind = TRUE)[, "col"]]
 
-# cor(series[,c('Home_Won', corr_vars)]) # Remove one feature from each highly-correlated pair
-dStats <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA._all', 'dBerg', 'dxGF.60_all', 'dSh._all')]
+cor(series[,c('Home_Won', corr_vars)]) # Remove one feature from each highly-correlated pair
+dStats <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dBerg', 'dxGF.60_all', 'dSh._all')]
 ```
 
 

@@ -14,14 +14,24 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 # Tune LASSO's Learning Rate Hyperparameter
 ```{r}
 library(glmnet)
+library(glmnetUtils)
 # Use elastic net (mixture of L1 and L2 regularization) for feature selection. Use mixing parameter alpha=0.5 and vary the penalty coefficient lambda, while monitoring which features have non-zero coefficients in each iteration.
 
-# base case: alpha=1 (pure L1 error)
-temp_model <- glmnet(Home_Won ~ ., data=df, alpha=0.5, family='binomial', lambda=1)
-features_non_zero <- ceiling(abs(coef(temp_model))/100)
+# preliminary test of lambda and alpha ranges
+ballpark_model <- cva.glmnet(Home_Won ~ ., data=df, family='binomial')
+plot(ballpark_model)
 
-lambdas <- seq(0,0.5,by=0.0001)
+alphas <- seq(0, 1, len=11)^3 # default range in cva.glmnet
+lambdas <- exp(seq(log(0.01), log(1), len=11)) # equally log-spaced
+num_iterations <- 3
+results <- matrix(nrow=11,ncol=11)
 
+for (i in 1:length(alphas)) {
+  for (k in 1:num_iterations) {
+    temp_model <- cv.glmnet(Home_Won ~ ., data=df, alpha=alphas[i], lambda = lambdas, family='binomial')
+    
+  }
+}
 for (i in 1:length(lambdas)) {
   temp_model <- glmnet(Home_Won ~ ., data=df, alpha=0.5, family='binomial', lambda=lambdas[i])
   features_non_zero <- features_non_zero + ceiling(abs(coef(temp_model))/100)

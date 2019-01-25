@@ -70,7 +70,7 @@ cv_lr <- function(data, nfolds=10, nruns=1000, symm=FALSE) {
 ## Logistic Regression Benchmark:
 ```{r}
 # cv_lr(df)
-# Log Loss: 0.83 (sd 0.27)
+# Log Loss: 0.81 (sd 0.25)
 # Accuracy: 60% (sd 0.12)}
 ```
 
@@ -79,7 +79,7 @@ cv_lr <- function(data, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(data, nfolds=10, nruns=16, mtry=floor(sqrt(ncol(df))), nodesize=5) {
+cv_rf_reg <- function(data, nfolds=10, nruns=24, mtry=floor(ncol(df)/3), nodesize=5) {
   set.seed(0)
   n <- nrow(data)
   results <- matrix(nrow=nruns, ncol=4)
@@ -96,7 +96,7 @@ cv_rf_reg <- function(data, nfolds=10, nruns=16, mtry=floor(sqrt(ncol(df))), nod
       test_data <- data_shuffled[test_rows,]
       train_data <- data_shuffled[-test_rows,]
   
-      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=10000, mtry=mtry, nodesize=nodesize))
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=4000, mtry=mtry, nodesize=nodesize))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
         
       log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
@@ -112,9 +112,9 @@ cv_rf_reg <- function(data, nfolds=10, nruns=16, mtry=floor(sqrt(ncol(df))), nod
 
 ## Random Forest (Regression) Benchmark:
 ```{r}
-# cv_rf_reg(df)
-# Log Loss: 0.67 (sd 0.10)
-# Accuracy: 63% (sd 0.12)
+cv_rf_reg(df)
+# Log Loss: 0.676 (sd 0.11)
+# Accuracy: 62% (sd 0.13)
 ```
 
 
@@ -157,7 +157,7 @@ cv_rf_class <- function(data, nfolds=10, nruns=24, mtry=floor(sqrt(ncol(df))), n
 
 ## Random Forest (Classification) Benchmark:
 ```{r}
-# cv_rf_class(df)
-# Log Loss: 0.67 (sd 0.10)
-# Accuracy: 63% (sd 0.12)
+cv_rf_class(df)
+# Log Loss: 0.67 (sd 0.11)
+# Accuracy: 62.5% (sd 0.12)
 ```
