@@ -1,0 +1,47 @@
+---
+title: "elastic_net_tuning"
+author: "Ethan Greig"
+date: "1/20/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+```
+
+# Tune LASSO's Learning Rate Hyperparameter
+```{r}
+library(glmnetUtils)
+# Use elastic net (mixture of L1 and L2 regularization) for feature selection. Use mixing parameter alpha=0.5 and vary the penalty coefficient lambda, while monitoring which features have non-zero coefficients in each iteration.
+
+# preliminary test of lambda and alpha ranges
+#ballpark_model <- cva.glmnet(Home_Won ~ ., data=df, family='binomial')
+#plot(ballpark_model)
+
+alphas_default <- seq(0, 0.5, len=11)^3 # default range in cva.glmnet
+lambdas_default <- exp(seq(log(0.00001), log(0.001), len=99)) # equally log-spaced
+
+elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_default, num_iterations) {
+  a <- length(alphas)
+  l <- length(lambdas)
+  results <- matrix(nrow=a,ncol=l)
+  for (i in 1:a) {
+    cvms <- matrix(nrow=num_iterations,ncol=l)
+    for (k in 1:num_iterations) {
+      temp_model <- cv.glmnet(Home_Won ~ ., data=data, alpha=alphas[i], lambda = lambdas, family='binomial')
+      cvms[k,] <- temp_model$cvup
+    }
+    results[i,] <- colMeans(cvms)
+  }
+  rownames(results) <- paste('alpha', alphas, sep='=')
+  colnames(results) <- paste('lambda', lambdas, sep='=')
+  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_elastic_net.csv", sep=',', col.names=NA)
+}
+
+# Grids attempted:
+elastic_net_grid(df, num_iterations=500)
+# elastic_net_grid(df, alphas=seq(0.2,0.7,len=6)^3, lambdas=exp(seq(log(0.35), log(0.85), len=11)) lambdas=num_iterations=10)
+```
+

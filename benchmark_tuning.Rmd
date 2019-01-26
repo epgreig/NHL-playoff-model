@@ -1,5 +1,5 @@
 ---
-title: "hyperparameter_tuning.Rmd"
+title: "benchmark_tuning.Rmd"
 author: "Ethan Greig"
 date: "1/20/2019"
 output: html_document
@@ -15,7 +15,7 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 ```{r}
 # Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
 
-hyper_params <- function(data, mtrys, nodesizes, ntrees=4000) {
+rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
   results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
   data$Home_Won <- as.factor(data$Home_Won)
   
@@ -30,16 +30,16 @@ hyper_params <- function(data, mtrys, nodesizes, ntrees=4000) {
   
   rownames(results) <- paste('mtry', mtrys, sep='=')
   colnames(results) <- paste('nodesize', nodesizes, sep='=')
-  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_27_features.csv", sep=',', col.names=NA)
+  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_random_forest.csv", sep=',', col.names=NA)
 }
 
 # Grids attempted:
-# hyper_params(df, mtrys=1:25, nodesizes=1:25)
-# hyper_params(df, mtrys=1:15, nodesizes=16:35)
-# hyper_params(df, mtrys=1:8, nodesizes=28:60)
-# hyper_params(df, mtrys=2:8, nodesizes=50:69)
-# hyper_params(df, mtrys=2:8, nodesizes=50:59, ntrees=6000)
-# hyper_params(df, mtrys=2:8, nodesizes=55:65, ntrees=10000)
+# rf_grid(df, mtrys=1:25, nodesizes=1:25)
+# rf_grid(df, mtrys=1:15, nodesizes=16:35)
+# rf_grid(df, mtrys=1:8, nodesizes=28:60)
+# rf_grid(df, mtrys=2:8, nodesizes=50:69)
+# rf_grid(df, mtrys=2:8, nodesizes=50:59, ntrees=6000)
+# rf_grid(df, mtrys=2:8, nodesizes=55:65, ntrees=10000)
 
 # result: mtry=6, nodesize=60
 ```
@@ -52,25 +52,25 @@ source(purl('benchmark_models.Rmd', output = tempfile()))
 
 ## Calculate Tuned Random Forest (Regression) Results
 ```{r}
-cv_rf_reg(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
+#cv_rf_reg(df, nfolds=10, nruns=32, mtry=6, nodesize=60)
 # BENCHMARK
-# Log Loss: 0.67 (sd 0.10)
-# Accuracy: 63% (sd 0.12)
+# Log Loss: 0.675 (sd 0.11)
+# Accuracy: 62.4% (sd 0.12)
 
 # AFTER TUNING
-# Log Loss: 0.654 (sd 0.08)
+# Log Loss: 0.652 (sd 0.08)
 # Accuracy: 63% (sd 0.12)
 ```
 
 ## Calculate Tuned Random Forest (Classification) Results
 ```{r}
-cv_rf_class(df, nfolds=10, nruns=16, mtry=6, nodesize=60)
+#cv_rf_class(df, nfolds=10, nruns=24, mtry=6, nodesize=60)
 # BENCHMARK
-# Log Loss: 0.67 (sd 0.10)
-# Accuracy: 63% (sd 0.12)
+# Log Loss: 0.672 (sd 0.11)
+# Accuracy: 62.5% (sd 0.12)
 
 # AFTER TUNING
-# Log Loss: 0.67 (sd 0.10)
-# Accuracy: 63% (sd 0.12)
+# Log Loss: 0.672 (sd 0.10)
+# Accuracy: 62.2% (sd 0.11)
 #(same)
 ```

@@ -1,0 +1,49 @@
+---
+title: "rf_feature_selection"
+author: "Ethan Greig"
+date: "1/26/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+```
+
+# %IncMSE or MeanDecreaseAccuracy (MDA): a feature with a low MDA indicates that if its values are permuted in the training set, the model does not perform much worse. This either indicates that the feature is worthless or that the information in this feature can be gathered from other features instead. So a higher MDA feature is likely to have more unique IV compared to all other features.
+
+# IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDA indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDA means that a feature provides at least some predictive value at some level of some trees.
+
+# Random Forest (Regression) Feature Importance
+```{r}
+dfr <- df
+dStats_regr <- dStats
+
+# Train a massive random forest so the importance metrics have low noise
+huge_model_r1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+
+# Remove features with negative MDA
+print(huge_model_r1$importance[huge_model_r1$importance[,1]<0,])
+dStats_regr <- dStats[!dStats%in%c('dxGA.60_55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.', 'dROW')]
+dfr <- dfr[,c('Home_Won', dStats_regr)]
+```
+
+```{r}
+# Try again (with scaled-down hyperparams) to identify more weak features
+huge_model_r2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr, ntree=1000000, mtry=4, nodesize=45, importance=TRUE))
+
+# Remove features with negative MDA
+print(huge_model_r2$importance[huge_model_r2$importance[,1]<0,])
+#dStats_regr <- dStats[!dStats%in%c('dxGA.60_55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.', 'dROW')]
+#dfr <- dfr[,dStats_regr]
+```
+
+# Random Forest (Classification) Feature Importance
+```{r}
+# Train a massive random forest so the importance metrics have low noise
+huge_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+
+# Print features with negative MDA
+print(huge_model$importance[huge_model$importance[,1]<0,])
+```
