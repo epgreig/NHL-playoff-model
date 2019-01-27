@@ -17,33 +17,71 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 
 # Random Forest (Regression) Feature Importance
 ```{r}
-dfr <- df
-dStats_regr <- dStats
+library(randomForest)
+dfr1 <- df
+dStats_regr1 <- dStats
 
 # Train a massive random forest so the importance metrics have low noise
-huge_model_r1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+#huge_model_r1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr1, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+#print(huge_model_r1$importance[huge_model_r1$importance[,1]<0,])
 
 # Remove features with negative MDA
-print(huge_model_r1$importance[huge_model_r1$importance[,1]<0,])
-dStats_regr <- dStats[!dStats%in%c('dxGA.60_55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.', 'dROW')]
-dfr <- dfr[,c('Home_Won', dStats_regr)]
+dStats_regr2 <- dStats_regr1[!dStats_regr1%in%c('dxGA.60_55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.', 'dROW')]
+dfr2 <- dfr1[,c('Home_Won', dStats_regr2)]
 ```
 
 ```{r}
-# Try again (with scaled-down hyperparams) to identify more weak features
-huge_model_r2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr, ntree=1000000, mtry=4, nodesize=45, importance=TRUE))
+# Try a second time (with scaled-down hyperparams) to identify more weak features
+#huge_model_r2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr2, ntree=1000000, mtry=5, nodesize=60, importance=TRUE))
+#print(huge_model_r2$importance)
 
-# Remove features with negative MDA
-print(huge_model_r2$importance[huge_model_r2$importance[,1]<0,])
-#dStats_regr <- dStats[!dStats%in%c('dxGA.60_55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.', 'dROW')]
-#dfr <- dfr[,dStats_regr]
+# Remove features with MDA<5e-04 and MDG < 0.4
+dStats_regr3 <- dStats_regr2[!dStats_regr2%in%c('dxGF.60_55', 'dSh._55', 'dSv._55', 'dW')]
+dfr3 <- dfr2[,c('Home_Won', dStats_regr3)]
+```
+
+```{r}
+# Try a third time (with scaled-down hyperparams) to identify more weak features
+#huge_model_r3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
+#print(huge_model_r3$importance)
+
+# Remove features with MDA<0.001 and MDG<0.5
+dStats_regr4 <- dStats_regr3[!dStats_regr3%in%c('dGA.60_55', 'dTime_Led')]
+dfr4 <- dfr3[,c('Home_Won', dStats_regr4)]
 ```
 
 # Random Forest (Classification) Feature Importance
 ```{r}
-# Train a massive random forest so the importance metrics have low noise
-huge_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+library(randomForest)
+dfc1 <- df
+dfc1$Home_Won <- as.factor(dfc1$Home_Won)
+dStats_clas1 <- dStats
 
-# Print features with negative MDA
-print(huge_model$importance[huge_model$importance[,1]<0,])
+# Train a massive random forest so the importance metrics have low noise
+#huge_model_c1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc1, ntree=1000000, mtry=6, nodesize=60, importance=TRUE))
+#print(huge_model_c1$importance[huge_model_c1$importance[,3]<0,])
+
+# Remove features with negative MDA
+dStats_clas2 <- dStats_clas1[!dStats_clas1%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
+dfc2 <- dfc1[,c('Home_Won', dStats_clas2)]
+```
+
+```{r}
+# Train a second time (with scaled-down hyperparams)  to identify more weak features
+#huge_model_c2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc2, ntree=1000000, mtry=5, nodesize=60, importance=TRUE))
+#print(huge_model_c2$importance)
+
+# Remove features with MDA<5e-04 and MDG<0.5
+dStats_clas3 <- dStats_clas2[!dStats_clas2%in%c('dGA.60_55', 'dxGF.60_55', 'dSv._55', 'dW', 'dROW')]
+dfc3 <- dfc2[,c('Home_Won', dStats_clas3)]
+```
+
+```{r}
+# Train a third time (with scaled-down hyperparams)  to identify more weak features
+#huge_model_c3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
+#print(huge_model_c3$importance)
+
+# Remove features with MDA<1e-03 and MDG<0.5
+dStats_clas4 <- dStats_clas3[!dStats_clas3%in%c('dCA.60_55', 'dTime_Led')]
+dfc4 <- dfc3[,c('Home_Won', dStats_clas4)]
 ```
