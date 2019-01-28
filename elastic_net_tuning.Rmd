@@ -20,8 +20,8 @@ library(glmnetUtils)
 #ballpark_model <- cva.glmnet(Home_Won ~ ., data=df, family='binomial')
 #plot(ballpark_model)
 
-alphas_default <- seq(0, 0.5, len=11)^3 # default range in cva.glmnet
-lambdas_default <- exp(seq(log(0.00001), log(0.001), len=99)) # equally log-spaced
+alphas_default <- seq(0, 1, len=21)^3 # default range in cva.glmnet
+lambdas_default <- exp(seq(-4, 0, len=21)) # equally log-spaced
 
 elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_default, num_iterations) {
   a <- length(alphas)
@@ -31,17 +31,18 @@ elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_defaul
     cvms <- matrix(nrow=num_iterations,ncol=l)
     for (k in 1:num_iterations) {
       temp_model <- cv.glmnet(Home_Won ~ ., data=data, alpha=alphas[i], lambda = lambdas, family='binomial')
-      cvms[k,] <- temp_model$cvup
+      cvms[k,] <- temp_model$cvm
     }
     results[i,] <- colMeans(cvms)
   }
   rownames(results) <- paste('alpha', alphas, sep='=')
-  colnames(results) <- paste('lambda', lambdas, sep='=')
+  colnames(results) <- paste('lambda', rev(lambdas), sep='=')
   write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_elastic_net.csv", sep=',', col.names=NA)
 }
 
 # Grids attempted:
-elastic_net_grid(df, num_iterations=500)
-# elastic_net_grid(df, alphas=seq(0.2,0.7,len=6)^3, lambdas=exp(seq(log(0.35), log(0.85), len=11)) lambdas=num_iterations=10)
+#elastic_net_grid(df, num_iterations=500)
+#elastic_net_grid(df, alphas=seq(0.96,1,len=5)^3, lambdas=exp(seq(log(0.025), log(0.045), len=11)), num_iterations=750)
+elastic_net_grid(df, alphas=seq(0.98,1,len=9)^3, lambdas=exp(seq(log(0.03), log(0.04), len=16)), num_iterations=1000)
 ```
 
