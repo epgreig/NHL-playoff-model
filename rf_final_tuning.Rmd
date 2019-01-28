@@ -1,0 +1,109 @@
+---
+title: "rf_final_tuning.Rmd"
+author: "Ethan Greig"
+date: "1/27/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('benchmark_tuning.Rmd', output = tempfile()))
+# Also sources import_and_generate_series.Rmd and benchmark_models.Rmd
+```
+
+## Define subsets of full features
+```{r}
+df_13 <- df[,c('Home_Won', dStats_regr4)]
+df_13_class <- df_13
+df_13_class$Home_Won <- as.factor(df_13_class$Home_Won)
+
+df_7 <- df[,c('Home_Won', dStats_clas5)]
+df_7_class <- df_7
+df_7_class$Home_Won <- as.factor(df_7_class$Home_Won)
+
+df_4 <- df[,c('Home_Won', dStats_regr5)]
+df_4_class <- df_4
+df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
+```
+
+## Hyperparameter Tuning on reduced feature set RF (13 features)
+```{r}
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+
+# Grids attempted:
+#rf_grid(df_13_class, mtrys=1:8, nodesizes=10:60, ntrees=3000)
+#rf_grid(df_13_class, mtrys=1:3, nodesizes=10:60, ntrees=8000)
+#rf_grid(df_13_class, mtrys=1:3, nodesizes=35:65, ntrees=10000)
+#rf_grid(df_13_class, mtrys=1:2, nodesizes=60:65, ntrees=30000)
+
+# result: mtry=2, nodesize=62
+```
+
+## Hyperparameter Tuning on reduced feature set RF (7 features)
+```{r}
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+
+# Grids attempted:
+#rf_grid(df_7_class, mtrys=1:3, nodesizes=10:60, ntrees=10000)
+#rf_grid(df_7_class, mtrys=1, nodesizes=15:35, ntrees=30000)
+
+# result: mtry=1, nodesize=25
+```
+
+## Hyperparameter Tuning on reduced feature set RF (4 features)
+```{r}
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+
+# Grids attempted:
+#rf_grid(dfrc5, mtrys=1:3, nodesizes=10:60, ntrees=10000)
+#rf_grid(df_4_class, mtrys=1, nodesizes=5:40, ntrees=100000)
+
+# result: mtry=1, nodesize=25
+```
+
+
+## Random Forest (Classification) Results, Tuned on 13, 7, 4 features
+```{r}
+# FULL FEATURES
+# Log Loss: 0.672 (sd 0.10)
+# Accuracy: 62.2% (sd 0.11)
+
+#cv_rf_class(df_13, nfolds=10, nruns=32, mtry=2, nodesize=62)
+# 13 FEATURES
+# Log Loss: 0.666 (sd 0.12)
+# Accuracy: 64.0% (sd 0.11)
+
+#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=25)
+# 7 FEATURES
+# Log Loss: 0.687 (sd 0.13)
+# Accuracy: 65.2% (sd 0.11)
+
+#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=25)
+# 4 FEATURES
+# Log Loss: 0.684 (sd 0.17)
+# Accuracy: 65.0% (sd 0.12)
+```
+
+
+## Random Forest (Regression) Results, Tuned on 7 features
+```{r}
+# FULL FEATURES
+# Log Loss: 0.652 (sd 0.08)
+# Accuracy: 63% (sd 0.12)
+
+#cv_rf_reg(df_13, nfolds=10, nruns=32, mtry=2, nodesize=62)
+# 13 FEATURES
+# Log Loss: 0.634 (sd 0.07)
+# Accuracy: 65.7% (sd 0.12)
+
+#cv_rf_reg(df_7, nfolds=10, nruns=32, mtry=1, nodesize=25)
+# 7 FEATURES
+# Log Loss: 0.640 (sd 0.10)
+# Accuracy: 68.8% (sd 0.12)
+
+#cv_rf_reg(df_4, nfolds=10, nruns=32, mtry=1, nodesize=25)
+# 4 FEATURES
+# Log Loss: 0.636 (sd 0.11)
+# Accuracy: 68.1% (sd 0.12)
+```
+

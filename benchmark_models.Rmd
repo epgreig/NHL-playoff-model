@@ -79,7 +79,7 @@ cv_lr <- function(data, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(data, nfolds=10, nruns=24, mtry=floor(ncol(df)/3), nodesize=5) {
+cv_rf_reg <- function(data, nfolds=10, nruns=24, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
   set.seed(0)
   n <- nrow(data)
   results <- matrix(nrow=nruns, ncol=4)
@@ -96,7 +96,7 @@ cv_rf_reg <- function(data, nfolds=10, nruns=24, mtry=floor(ncol(df)/3), nodesiz
       test_data <- data_shuffled[test_rows,]
       train_data <- data_shuffled[-test_rows,]
   
-      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=4000, mtry=mtry, nodesize=nodesize))
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
         
       log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
@@ -123,7 +123,7 @@ cv_rf_reg <- function(data, nfolds=10, nruns=24, mtry=floor(ncol(df)/3), nodesiz
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_class <- function(data, nfolds=10, nruns=24, mtry=floor(sqrt(ncol(df))), nodesize=1) {
+cv_rf_class <- function(data, nfolds=10, nruns=24, ntrees=4000, mtry=floor(sqrt(ncol(df))), nodesize=1) {
   set.seed(0)
   n <- nrow(data)
   results <- matrix(nrow=nruns, ncol=4)
@@ -141,7 +141,7 @@ cv_rf_class <- function(data, nfolds=10, nruns=24, mtry=floor(sqrt(ncol(df))), n
       train_data <- data_shuffled[-test_rows,]
       train_data$Home_Won <- as.factor(train_data$Home_Won)
   
-      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=4000))
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='prob')[,2]
         
       log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)

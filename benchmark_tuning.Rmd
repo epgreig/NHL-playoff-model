@@ -14,10 +14,10 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 ## Hyperparameter Tuning on RF model
 ```{r}
 # Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+# Using classification because regression does not track OOB err.rate
 
 rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
   results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
-  data$Home_Won <- as.factor(data$Home_Won)
   
   for (i in mtrys) {
     for (j in nodesizes) {

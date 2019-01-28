@@ -43,11 +43,21 @@ dfr3 <- dfr2[,c('Home_Won', dStats_regr3)]
 ```{r}
 # Try a third time (with scaled-down hyperparams) to identify more weak features
 #huge_model_r3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
-#print(huge_model_r3$importance)
+print(huge_model_r3$importance)
 
 # Remove features with MDA<0.001 and MDG<0.5
 dStats_regr4 <- dStats_regr3[!dStats_regr3%in%c('dGA.60_55', 'dTime_Led')]
 dfr4 <- dfr3[,c('Home_Won', dStats_regr4)]
+```
+
+```{r}
+# Create a set of less than features with most predictive power
+#huge_model_r4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr4, ntree=1000000, mtry=1, nodesize=60, importance=TRUE))
+#print(huge_model_r4$importance)
+
+# Keep features with MDA> and MDG>
+dStats_regr5 <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
+dfr5 <- dfr4[,c('Home_Won', dStats_regr5)]
 ```
 
 # Random Forest (Classification) Feature Importance
@@ -81,7 +91,21 @@ dfc3 <- dfc2[,c('Home_Won', dStats_clas3)]
 #huge_model_c3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
 #print(huge_model_c3$importance)
 
-# Remove features with MDA<1e-03 and MDG<0.5
-dStats_clas4 <- dStats_clas3[!dStats_clas3%in%c('dCA.60_55', 'dTime_Led')]
+# Remove features with MDA<1e-03 and MDG<0.4
+dStats_clas4 <- dStats_clas3[!dStats_clas3%in%c('dTime_Led')]
 dfc4 <- dfc3[,c('Home_Won', dStats_clas4)]
+# dStats_clas4 is the same as dStats_regr4!
 ```
+
+
+```{r}
+# Create a set of less than features with most predictive power
+#huge_model_c4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc4, ntree=1000000, mtry=1, nodesize=60, importance=TRUE))
+#print(huge_model_c4$importance)
+
+# Keep features with MDG>1
+dStats_clas5 <- c('dCF.60_55', 'dGF._55', 'dxGF._55', 'dGF._all', 'dGA.60_all', 'dxGF._all', 'dxBerg')
+dfc5 <- dfc4[,c('Home_Won', dStats_clas5)]
+```
+
+#Result: We have three new subsets of the features: with 13, 7, and 4 features respectively.
