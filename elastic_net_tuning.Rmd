@@ -26,23 +26,31 @@ lambdas_default <- exp(seq(-4, 0, len=21)) # equally log-spaced
 elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_default, num_iterations) {
   a <- length(alphas)
   l <- length(lambdas)
-  results <- matrix(nrow=a,ncol=l)
+  avg_error <- matrix(nrow=a,ncol=l)
   for (i in 1:a) {
     cvms <- matrix(nrow=num_iterations,ncol=l)
     for (k in 1:num_iterations) {
       temp_model <- cv.glmnet(Home_Won ~ ., data=data, alpha=alphas[i], lambda = lambdas, family='binomial')
       cvms[k,] <- temp_model$cvm
     }
-    results[i,] <- colMeans(cvms)
+    avg_error[i,] <- colMeans(cvms)
   }
-  rownames(results) <- paste('alpha', alphas, sep='=')
-  colnames(results) <- paste('lambda', rev(lambdas), sep='=')
-  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_elastic_net.csv", sep=',', col.names=NA)
+  rownames(avg_error) <- paste('alpha', alphas, sep='=')
+  colnames(avg_error) <- paste('lambda', rev(lambdas), sep='=')
+  write.table(avg_error, file="~/repos/nhl-playoff-model/output_csvs/grid_search_elastic_net.csv", sep=',', col.names=NA)
 }
 
 # Grids attempted:
 #elastic_net_grid(df, num_iterations=500)
 #elastic_net_grid(df, alphas=seq(0.96,1,len=5)^3, lambdas=exp(seq(log(0.025), log(0.045), len=11)), num_iterations=750)
-elastic_net_grid(df, alphas=seq(0.98,1,len=9)^3, lambdas=exp(seq(log(0.03), log(0.04), len=16)), num_iterations=1000)
+#elastic_net_grid(df, alphas=seq(0.95,1,len=11), lambdas=exp(seq(log(0.03), log(0.04), len=16)), num_iterations=1000)
+
+#result: alpha=0.99, lambda=0.035
+#
 ```
+
+## Calculate Tuned Elastic Net Performance
+```{r}
+
+
 
