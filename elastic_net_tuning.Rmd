@@ -51,6 +51,37 @@ elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_defaul
 
 ## Calculate Tuned Elastic Net Performance
 ```{r}
+library(glmnetUtils)
 
+data <- df
+nfolds <- 10
+nruns <- 2000
 
+set.seed(0)
+n <- nrow(data)
+results <- matrix(nrow=nruns, ncol=4)
+  
+for (i in 1:nruns) {
+  data_shuffled <- data[sample(n),]
+  folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
 
+  log_loss <- NA
+  accuracy <- NA
+    
+  for (j in 1:nfolds) {
+    test_rows <- which(folds==j,arr.ind=TRUE)
+    test_data <- data_shuffled[test_rows,]
+    train_data <- data_shuffled[-test_rows,]
+
+    fold_model <- glmnet(`Home_Won` ~ .,data=train_data, family='binomial', alpha=0.99, lambda=0.035)
+    test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
+  
+    log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
+    accuracy[j] <- acc(test_data$fold_prediction, test_data$Home_Won)
+  }
+  
+  results[i,] = c(mean(log_loss), sd(log_loss), mean(accuracy), sd(accuracy))
+}
+
+print(setNames(data.frame(t(colMeans(results))), c('LR Log Loss', 'Std. Dev.', 'LR Accuracy', 'Std. Dev.')))
+```
