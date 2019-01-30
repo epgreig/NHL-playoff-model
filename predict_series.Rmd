@@ -1,0 +1,27 @@
+---
+title: "predict_series"
+author: "Ethan Greig"
+date: "1/29/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+```
+
+```{r}
+# Re-build series to include all playoff series data, not just 2008-2017
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+for(i in 1:length(dStats)) {
+  dStat <- dStats[i]
+  series[,dStat] <- NA
+}
+
+# fill series data frame with stat differences from regular season
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], raw_stats)
+}
+```
+

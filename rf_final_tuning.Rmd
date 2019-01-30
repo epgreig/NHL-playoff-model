@@ -7,7 +7,12 @@ output: html_document
 
 ```{r}
 library(knitr)
-source(purl('benchmark_tuning.Rmd', output = tempfile()))
+source(purl('random_forest_tuning.Rmd', output = tempfile()))
+# Also sources import_and_generate_series.Rmd and benchmark_models.Rmd
+```
+```{r}
+library(knitr)
+source(purl('cross_validation.Rmd', output = tempfile()))
 # Also sources import_and_generate_series.Rmd and benchmark_models.Rmd
 ```
 
@@ -17,7 +22,7 @@ df_13 <- df[,c('Home_Won', dStats_regr4)]
 df_13_class <- df_13
 df_13_class$Home_Won <- as.factor(df_13_class$Home_Won)
 
-df_7 <- df[,c('Home_Won', dStats_clas5)]
+df_7 <- df[,c('Home_Won', dStats_clas4)]
 df_7_class <- df_7
 df_7_class$Home_Won <- as.factor(df_7_class$Home_Won)
 
@@ -45,9 +50,9 @@ df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
 
 # Grids attempted:
 #rf_grid(df_7_class, mtrys=1:3, nodesizes=10:60, ntrees=10000)
-#rf_grid(df_7_class, mtrys=1, nodesizes=15:35, ntrees=30000)
+#rf_grid(df_7_class, mtrys=1, nodesizes=15:35, ntrees=3000)
 
-# result: mtry=1, nodesize=25
+# result: mtry=1, nodesize=20
 ```
 
 ## Hyperparameter Tuning on reduced feature set RF (4 features)
@@ -58,7 +63,7 @@ df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
 #rf_grid(dfrc5, mtrys=1:3, nodesizes=10:60, ntrees=10000)
 #rf_grid(df_4_class, mtrys=1, nodesizes=5:40, ntrees=100000)
 
-# result: mtry=1, nodesize=25
+# result: mtry=1, nodesize=23
 ```
 
 
@@ -73,12 +78,12 @@ df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
 # Log Loss: 0.656 (sd 0.11)
 # Accuracy: 65.0% (sd 0.12)
 
-#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=25)
+#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=20)
 # 7 FEATURES
 # Log Loss: 0.687 (sd 0.13)
 # Accuracy: 65.2% (sd 0.11)
 
-#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=25)
+#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=23)
 # 4 FEATURES
 # Log Loss: 0.684 (sd 0.17)
 # Accuracy: 65.0% (sd 0.12)
@@ -98,8 +103,8 @@ df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
 
 #cv_rf_reg(df_7, nfolds=10, nruns=256, mtry=1, nodesize=25, ntrees=1600)
 # 7 FEATURES
-# Log Loss: 0.641 (sd 0.09)
-# Accuracy: 68.4% (sd 0.12)
+# Log Loss: 0.635 (sd 0.09)
+# Accuracy: 67.8% (sd 0.11)
 
 #cv_rf_reg(df_4, nfolds=10, nruns=256, mtry=1, nodesize=25, ntrees=1600)
 # 4 FEATURES
