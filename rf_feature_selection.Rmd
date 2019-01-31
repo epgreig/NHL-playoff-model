@@ -55,7 +55,7 @@ dfr4 <- dfr3[,c('Home_Won', dStats_regr4)]
 #huge_model_r4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfr4, ntree=1000000, mtry=1, nodesize=60, importance=TRUE))
 #print(huge_model_r4$importance)
 
-# Keep features with MDA> and MDG>
+# Keep features with MDA>0.004 and MDG>0.9
 dStats_regr5 <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
 dfr5 <- dfr4[,c('Home_Won', dStats_regr5)]
 ```

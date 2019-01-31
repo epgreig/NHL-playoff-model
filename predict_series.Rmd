@@ -10,7 +10,17 @@ library(knitr)
 source(purl('import_and_generate_series.Rmd', output = tempfile()))
 ```
 
+# Repeat some of the actions from import_and_generate_series, but with all data
 ```{r}
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+}
+
+dStats <- make.names(dStats)
+
 # Re-build series to include all playoff series data, not just 2008-2017
 series <- read.csv("input_csvs/all_playoff_series.csv")
 series$Home_Won <- round(series$Home_W., 0)
@@ -23,5 +33,43 @@ for(i in 1:length(dStats)) {
 for (row in 1:nrow(series)) {
   series[row,] <- getDifferences(series[row,], raw_stats)
 }
+
+df <- series[,c('Home_Won', dStats)] # keep only features and target
+df[,dStats] <- data.frame(scale(df[,dStats])) # normalize
 ```
 
+## Define subsets of full features
+```{r}
+dStats_13 <- c("dCF.60_55", "dCA.60_55", "dGF._55", "dGF.60_55", "dxGF._55", "dCF._all", "dGF._all", "dGA.60_all", "dxGF._all", "dSv._all", "dHDCF._55", "dPK.", "dxBerg")
+df_13 <- df[,c('Home_Won', dStats_13)]
+
+dStats_7 <- c("dCF.60_55", "dGF._55", "dxGF._55", "dGF._all", "dGA.60_all", "dxGF._all", "dPK.")
+df_7 <- df[,c('Home_Won', dStats_7)]
+
+dStats_4 <- c("dCF.60_55", "dGF._55", "dGF._all", "dxGF._all")
+df_4 <- df[,c('Home_Won', dStats_4)]
+```
+
+```{r}
+library(glmnetUtils)
+library(randomForest)
+
+predict_round <- function(series_data, year, round) {
+  prior_series <- series_data[series_data$Season<year | (series_data$Season==year & series_data$Round<round),]
+  train <- prior_series[,c('Home_Won', dStats)]
+  
+  rf_13 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_13)], ntree=200000, mtry=2, nodesize=62))
+  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4)], ntree=200000, mtry=1, nodesize=25))
+  en_5 <- glmnet(Home_Won ~ ., data=train, alpha=0.99, lambda = 0.035, family='binomial')
+  
+  pred_series <- series_data[series_data$Season==year & series_data$Round==round,]
+  test <- pred_series[,c('Home_Won', dStats)]
+  
+  output <- pred_series[,c('Season', 'Round', 'Home', 'Away')]
+  output$rf_13_pred <- predict(rf_13, test, type='response')
+  output$rf_4_pred <- predict(rf_4, test, type='response')
+  output$en_5_pred <- predict(en_5, test, type='response')
+  
+  write.table(output, file="~/repos/nhl-playoff-model/output_csvs/predictions.csv", sep=',', col.names=NA)
+}
+```

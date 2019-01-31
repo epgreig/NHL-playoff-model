@@ -1,0 +1,15 @@
+---
+title: "backtest_final_models"
+author: "Ethan Greig"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('predict_series.Rmd', output = tempfile()))
+```
+
+```{r}
+predict_round(series, 2018, 1)
+```
