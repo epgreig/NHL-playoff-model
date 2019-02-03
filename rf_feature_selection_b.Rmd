@@ -48,14 +48,25 @@ df_11 <- df_19[,c('Home_Won', dStats_11)]
 
 # Remove any feature which are more than 50% correlated with another feature that has a higher MDA
 dStats_5_uncorr <- c('dGF._all', 'dCF.60_55', 'dxGF._all', 'dGA.60_all', 'dPK.')
+
+# Alternatively, keep the features which have far higher MDA than all others
+dStats_4_best <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
 ```
 
 ```{r}
 # Try from the beginning but by using only F/60 and A/60 stats instead of F%
-dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
-df_19 <- df_full[,c('Home_Won', dStats_19)]
+dStats_no_pct <- dStats[!dStats%in%c('dCF._55', 'dGF._55', 'dxGF._55', 'dCF._all', 'dGF._all', 'dxGF._all')]
+dStats_no_pct_19 <- dStats_no_pct[!dStats_no_pct%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
+df_25 <- df_full[,c('Home_Won', dStats_25)]
+```
 
+```{r}
+#imp_model_t19 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full[,c('Home_Won', dStats_no_pct_19)], ntree=200000, mtry=5, nodesize=50, importance=TRUE))
+#print(imp_model_t19$importance)
 
+# Remove features with MDA<1e-03 and MDG<0.9
+dStats_no_pct_11 <- dStats_no_pct_19[!dStats_no_pct_19%in%c('dxGF.60_55', 'dSv._55', 'dSh._all', 'dSv._all', 'dTime_Led', 'dW', 'dROW', 'dBerg')]
+df_
 ```
 
 
