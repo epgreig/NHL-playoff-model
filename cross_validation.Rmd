@@ -5,12 +5,6 @@ date: "1/28/2019"
 output: html_document
 ---
 
-```{r}
-library(knitr)
-source(purl('import_and_generate_series.Rmd', output = tempfile()))
-# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
-```
-
 ## Define Some Metrics
 ```{r}
 logLoss <- function(pred, actual){

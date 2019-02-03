@@ -6,7 +6,7 @@ output: html_document
 ---
 
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('import_data.Rmd', output = tempfile()))
 ```
@@ -65,6 +65,5 @@ dStats <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dBerg', 'd
 
 ## Prepare dataframe
 ```{r}
-df <- series[,c('Home_Won', dStats)] # keep only features and target
-df[,dStats] <- data.frame(scale(df[,dStats])) # normalize
+df <- series[,c('Home_Won', dStats)] # keep only features and target # normalize
 ```

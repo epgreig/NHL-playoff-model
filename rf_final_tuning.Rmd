@@ -5,110 +5,107 @@ date: "1/27/2019"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
+source(purl('rf_feature_selection.Rmd', output = tempfile()))
 source(purl('random_forest_tuning.Rmd', output = tempfile()))
-# Also sources import_and_generate_series.Rmd and benchmark_models.Rmd
-```
-```{r}
-library(knitr)
 source(purl('cross_validation.Rmd', output = tempfile()))
-# Also sources import_and_generate_series.Rmd and benchmark_models.Rmd
 ```
 
 ## Define subsets of full features
 ```{r}
-df_13 <- df[,c('Home_Won', dStats_regr4)]
-df_13_class <- df_13
-df_13_class$Home_Won <- as.factor(df_13_class$Home_Won)
+df_11 <- df[,c('Home_Won', dStats_11)]
+df_11_class <- df_11
+df_11_class$Home_Won <- as.factor(df_11_class$Home_Won)
 
-df_7 <- df[,c('Home_Won', dStats_clas4)]
-df_7_class <- df_7
-df_7_class$Home_Won <- as.factor(df_7_class$Home_Won)
+df_5_uncorr <- df[,c('Home_Won', dStats_5_uncorr)]
+df_5_uncorr_class <- df_5_uncorr
+df_5_uncorr_class$Home_Won <- as.factor(df_5_uncorr_class$Home_Won)
 
-df_4 <- df[,c('Home_Won', dStats_regr5)]
-df_4_class <- df_4
-df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
+df_4_best <- df[,c('Home_Won', dStats_4_best)]
+df_4_best_class <- df_4_best
+df_4_best_class$Home_Won <- as.factor(df_4_best_class$Home_Won)
 ```
 
-## Hyperparameter Tuning on reduced feature set RF (13 features)
+## Hyperparameter Tuning on reduced feature set RF (11 features)
 ```{r}
-# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss).
+# Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing out regression)
 
 # Grids attempted:
-#rf_grid(df_13_class, mtrys=1:8, nodesizes=10:60, ntrees=3000)
-#rf_grid(df_13_class, mtrys=1:3, nodesizes=10:60, ntrees=8000)
-#rf_grid(df_13_class, mtrys=1:3, nodesizes=35:65, ntrees=10000)
-#rf_grid(df_13_class, mtrys=1:2, nodesizes=60:65, ntrees=30000)
+#rf_grid(df_11_class, mtrys=1:3, nodesizes=30:100, ntrees=5000)
+#rf_grid(df_11_class, mtrys=1, nodesizes=65:72, ntrees=30000)
 
-# result: mtry=2, nodesize=62
+# result: mtry=1, nodesize=70
 ```
 
-## Hyperparameter Tuning on reduced feature set RF (7 features)
+## Hyperparameter Tuning on reduced feature set RF (5 uncorrelated features)
 ```{r}
 # Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+# Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing out regression)
 
 # Grids attempted:
-#rf_grid(df_7_class, mtrys=1:3, nodesizes=10:60, ntrees=10000)
-#rf_grid(df_7_class, mtrys=1, nodesizes=15:35, ntrees=3000)
+#rf_grid(df_5_uncorr_class, mtrys=1:2, nodesizes=20:100, ntrees=10000)
+#rf_grid(df_5_uncorr_class, mtrys=1, nodesizes=60:80, ntrees=30000)
 
-# result: mtry=1, nodesize=25
+# result: mtry=1, nodesize=70
 ```
 
-## Hyperparameter Tuning on reduced feature set RF (4 features)
+## Hyperparameter Tuning on reduced feature set RF (4 best features)
 ```{r}
 # Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
+# Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing votes)
 
 # Grids attempted:
-#rf_grid(df_4_class, mtrys=1:3, nodesizes=10:60, ntrees=10000)
-#rf_grid(df_4_class, mtrys=1, nodesizes=5:40, ntrees=3000)
+#rf_grid(df_4_best_class, mtrys=1:2, nodesizes=20:100, ntrees=10000)
+#rf_grid(df_4_best_class, mtrys=1, nodesizes=35:50, ntrees=30000)
 
-# result: mtry=1, nodesize=25
+# result: mtry=1, nodesize=45
 ```
 
 
-## Random Forest (Classification) Results, Tuned on 13, 7, 4 features
+## Random Forest (Classification) Results, Tuned on subsets of features
 ```{r}
 # FULL FEATURES
 # Log Loss: 0.672 (sd 0.10)
 # Accuracy: 62.2% (sd 0.11)
 
-#cv_rf_class(df_13, nfolds=10, nruns=64, mtry=2, nodesize=62, ntrees=1600)
+cv_rf_class(df_11, nfolds=10, nruns=64, mtry=2, nodesize=62, ntrees=2500)
 # 13 FEATURES
-# Log Loss: 0.656 (sd 0.11)
-# Accuracy: 65.0% (sd 0.12)
+# Log Loss: 0.669 (sd 0.11)
+# Accuracy: 64.7% (sd 0.12)
 
-#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=25)
+cv_rf_class(df_5_uncorr, nfolds=10, nruns=32, mtry=1, nodesize=60, ntrees=2500)
 # 7 FEATURES
-# Log Loss: 0.687 (sd 0.13)
-# Accuracy: 65.2% (sd 0.11)
+# Log Loss: 0.708 (sd 0.14)
+# Accuracy: 61.7% (sd 0.12)
 
-#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=25)
+cv_rf_class(df_4_best, nfolds=10, nruns=32, mtry=1, nodesize=40, ntrees=2500)
 # 4 FEATURES
-# Log Loss: 0.684 (sd 0.17)
-# Accuracy: 65.0% (sd 0.12)
+# Log Loss: 0.690 (sd 0.16)
+# Accuracy: 64.6% (sd 0.12)
 ```
 
 
-## Random Forest (Regression) Performance, Tuned on 13, 7, 4 features
+## Random Forest (Regression) Performance, Tuned on subsets of features
 ```{r}
 # FULL FEATURES
 # Log Loss: 0.652 (sd 0.08)
 # Accuracy: 63% (sd 0.12)
 
-#cv_rf_reg(df_13, nfolds=10, nruns=256, mtry=2, nodesize=62, ntrees=1600)
+cv_rf_reg(df_11, nfolds=10, nruns=64, mtry=2, nodesize=62, ntrees=2500)
 # 13 FEATURES
-# Log Loss: 0.635 (sd 0.07)
-# Accuracy: 65.8% (sd 0.12)
+# Log Loss: 0.633 (sd 0.07)
+# Accuracy: 66.9% (sd 0.12)
 
-#cv_rf_reg(df_7, nfolds=10, nruns=256, mtry=1, nodesize=25, ntrees=1600)
+cv_rf_reg(df_5_uncorr, nfolds=10, nruns=32, mtry=1, nodesize=60, ntrees=2500)
 # 7 FEATURES
-# Log Loss: 0.635 (sd 0.09)
-# Accuracy: 67.8% (sd 0.11)
+# Log Loss: 0.632 (sd 0.07)
+# Accuracy: 66.0% (sd 0.12)
 
-#cv_rf_reg(df_4, nfolds=10, nruns=256, mtry=1, nodesize=25, ntrees=1600)
+cv_rf_reg(df_4_best, nfolds=10, nruns=32, mtry=1, nodesize=45, ntrees=2500)
 # 4 FEATURES
-# Log Loss: 0.632 (sd 0.11)
-# Accuracy: 68.2% (sd 0.12)
+# Log Loss: 0.621 (sd 0.08)
+# Accuracy: 69.0% (sd 0.11)
 ```
 

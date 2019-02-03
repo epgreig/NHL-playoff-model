@@ -5,9 +5,9 @@ date: "1/29/2019"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
-source(purl('import_and_generate_series.Rmd', output = tempfile()))
+source(purl('rf_feature_selection.Rmd', output = tempfile()))
 ```
 
 # Repeat some of the actions from import_and_generate_series, but with all data
@@ -35,19 +35,6 @@ for (row in 1:nrow(series)) {
 }
 
 df <- series[,c('Home_Won', dStats)] # keep only features and target
-df[,dStats] <- data.frame(scale(df[,dStats])) # normalize
-```
-
-## Define subsets of full features
-```{r}
-dStats_13 <- c("dCF.60_55", "dCA.60_55", "dGF._55", "dGF.60_55", "dxGF._55", "dCF._all", "dGF._all", "dGA.60_all", "dxGF._all", "dSv._all", "dHDCF._55", "dPK.", "dxBerg")
-df_13 <- df[,c('Home_Won', dStats_13)]
-
-dStats_7 <- c("dCF.60_55", "dGF._55", "dxGF._55", "dGF._all", "dxGF._all", "dPK.", "dxBerg")
-df_7 <- df[,c('Home_Won', dStats_7)]
-
-dStats_4 <- c("dCF.60_55", "dGF._55", "dGF._all", "dxGF._all")
-df_4 <- df[,c('Home_Won', dStats_4)]
 ```
 
 ```{r}
@@ -62,16 +49,16 @@ predict_round <- function(series_data, year, round=0) {
   else pred_series <- series_data[series_data$Season==year && series_data$Round==round,]
   test <- pred_series[,c('Home_Won', dStats)]
   
-  rf_13 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_13)], ntree=200000, mtry=2, nodesize=62))
-  rf_7 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_7)], ntree=200000, mtry=1, nodesize=25))
-  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4)], ntree=200000, mtry=1, nodesize=25))
+  rf_11 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_11)], ntree=250000, mtry=1, nodesize=70))
+  rf_5 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_5_uncorr)], ntree=250000, mtry=1, nodesize=70))
+  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4_best)], ntree=250000, mtry=1, nodesize=40))
   en <- glmnet(Home_Won ~ ., data=train, alpha=0.99, lambda = 0.035, family='binomial')
   
   output <- pred_series[,c('Season', 'Round', 'Home', 'Away', 'Home_Won')]
-  output$rf_13_pred <- predict(rf_13, test, type='response')
-  output$rf_13_loss <- -log(abs(1-output$Home_Won-output$rf_13_pred))
-  output$rf_7_pred <- predict(rf_7, test, type='response')
-  output$rf_7_loss <- -log(abs(1-output$Home_Won-output$rf_7_pred))
+  output$rf_11_pred <- predict(rf_11, test, type='response')
+  output$rf_11_loss <- -log(abs(1-output$Home_Won-output$rf_11_pred))
+  output$rf_5_pred <- predict(rf_5, test, type='response')
+  output$rf_5_loss <- -log(abs(1-output$Home_Won-output$rf_5_pred))
   output$rf_4_pred <- predict(rf_4, test, type='response')
   output$rf_4_loss <- -log(abs(1-output$Home_Won-output$rf_4_pred))
   output$en_pred <- predict(en, test, type='response')

@@ -5,7 +5,7 @@ date: "1/20/2019"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('import_and_generate_series.Rmd', output = tempfile()))
 # Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
@@ -84,4 +84,12 @@ for (i in 1:nruns) {
 }
 
 print(setNames(data.frame(t(colMeans(results))), c('LR Log Loss', 'Std. Dev.', 'LR Accuracy', 'Std. Dev.')))
+
+# LOGISTIC REGRESSION
+# Log Loss: 0.81 (sd 0.25)
+# Accuracy: 60% (sd 0.12)}
+
+# ELASTIC NET
+# Log Loss: 0.656 (sd 0.08)
+# Accuracy: 63.9% (sd 0.12)}
 ```

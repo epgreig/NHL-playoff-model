@@ -5,7 +5,7 @@ date: "1/20/2019"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('random_forest_tuning.Rmd', output = tempfile()))
 # Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
@@ -24,7 +24,7 @@ rf_grid(df, mtrys=2:8, nodesizes=55:65, ntrees=10000)
 # result: mtry=6, nodesize=60
 ```
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('cross_validation.Rmd', output = tempfile()))
 # defines the cross-validation functions

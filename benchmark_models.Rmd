@@ -5,7 +5,7 @@ date: "11/17/2018"
 output: pdf_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('cross_validation.Rmd', output = tempfile()))
 # Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set

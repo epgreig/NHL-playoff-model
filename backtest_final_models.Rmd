@@ -5,7 +5,7 @@ date: "1/30/2019"
 output: html_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(knitr)
 source(purl('predict_series.Rmd', output = tempfile()))
 ```
