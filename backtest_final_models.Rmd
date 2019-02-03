@@ -11,5 +11,5 @@ source(purl('predict_series.Rmd', output = tempfile()))
 ```
 
 ```{r}
-predict_round(series, 2018, 1)
+predict_round(series, 2018)
 ```

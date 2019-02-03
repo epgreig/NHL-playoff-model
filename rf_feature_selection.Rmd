@@ -13,7 +13,7 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 
 # %IncMSE or MeanDecreaseAccuracy (MDA): a feature with a low MDA indicates that if its values are permuted in the training set, the model does not perform much worse. This either indicates that the feature is worthless or that the information in this feature can be gathered from other features instead. So a higher MDA feature is likely to have more unique IV compared to all other features.
 
-# IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDA indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDA means that a feature provides at least some predictive value at some level of some trees.
+# IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDG indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDG means that a feature provides at least some predictive value at some level of some trees.
 
 # Random Forest (Regression) Feature Importance
 ```{r}
@@ -88,12 +88,12 @@ dfc3 <- dfc2[,c('Home_Won', dStats_clas3)]
 
 ```{r}
 # Train a third time (with scaled-down hyperparams)  to identify more weak features
-#huge_model_c3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
-#print(huge_model_c3$importance)
+huge_model_c3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=dfc3, ntree=1000000, mtry=4, nodesize=60, importance=TRUE))
+print(huge_model_c3$importance)
 
-# Remove features with MDA<1e-03 and MDG<0.4
-dStats_clas4 <- c('dCF.60_55', 'dGF._55', 'dxGF._55', 'dGF._all', 'dGA.60_all', 'dxGF._all', 'dPK.')
-dfc4 <- dfc3[,c('Home_Won', dStats_clas4)]
+# Keep features with MDA>1e-03 and MDG<0.4
+#dStats_clas4 <- c('dCF.60_55', 'dGF._55', 'dxGF._55', 'dGF._all', 'dxBerg', 'dxGF._all', 'dPK.')
+#dfc4 <- dfc3[,c('Home_Won', dStats_clas4)]
 # dStats_clas4 is the same as dStats_regr4!
 ```
 

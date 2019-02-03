@@ -1,0 +1,62 @@
+---
+title: "rf_feature_subsets"
+author: "Ethan Greig"
+date: "2/2/2019"
+output: html_document
+---
+
+```{r}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+```
+
+# %IncMSE or MeanDecreaseAccuracy (MDA): a feature with a low MDA indicates that if its values are permuted in the training set, the model does not perform much worse. This either indicates that the feature is worthless or that the information in this feature can be gathered from other features instead. So a higher MDA feature is likely to have more unique IV compared to all other features.
+
+# IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDA indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDA means that a feature provides at least some predictive value at some level of some trees.
+
+# Random Forest (Classification) Feature Importance
+```{r}
+library(randomForest)
+df_full <- df[,c('Home_Won', dStats)]
+df_full$Home_Won <- as.factor(df_full$Home_Won)
+
+# Train a massive random forest so the importance metrics have low noise
+#imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=6, nodesize=60, importance=TRUE))
+#print(imp_model_1$importance[imp_model_1$importance[,3]<0,])
+
+# Remove features with negative MDA
+dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
+df_19 <- df_full[,c('Home_Won', dStats_19)]
+```
+
+```{r}
+# Train a second time (with scaled-down hyperparams)  to identify more weak features
+#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_19, ntree=200000, mtry=5, nodesize=60, importance=TRUE))
+#print(imp_model_2$importance)
+
+# Remove features with MDA<8e-04 and MDG<0.5
+dStats_11 <- dStats_19[!dStats_19%in%c('dCA.60_55', 'dGA.60_55', 'dxGF.60_55', 'dSv._all', 'dSv._55', 'dTime_Led', 'dW', 'dROW')]
+df_11 <- df_19[,c('Home_Won', dStats_11)]
+```
+
+```{r}
+# Train a third time (with scaled-down hyperparams)  to identify more weak features
+#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_11, ntree=200000, mtry=4, nodesize=50, importance=TRUE))
+#print(imp_model_3$importance)
+#print(cor(df_11[,dStats_11]))
+
+# Remove any feature which are more than 50% correlated with another feature that has a higher MDA
+dStats_5_uncorr <- c('dGF._all', 'dCF.60_55', 'dxGF._all', 'dGA.60_all', 'dPK.')
+```
+
+```{r}
+# Try from the beginning but by using only F/60 and A/60 stats instead of F%
+dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
+df_19 <- df_full[,c('Home_Won', dStats_19)]
+
+
+```
+
+
+

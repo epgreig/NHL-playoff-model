@@ -78,12 +78,12 @@ df_4_class$Home_Won <- as.factor(df_4_class$Home_Won)
 # Log Loss: 0.656 (sd 0.11)
 # Accuracy: 65.0% (sd 0.12)
 
-#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=20)
+#cv_rf_class(df_7, nfolds=10, nruns=32, mtry=1, nodesize=25)
 # 7 FEATURES
 # Log Loss: 0.687 (sd 0.13)
 # Accuracy: 65.2% (sd 0.11)
 
-#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=23)
+#cv_rf_class(df_4, nfolds=10, nruns=32, mtry=1, nodesize=25)
 # 4 FEATURES
 # Log Loss: 0.684 (sd 0.17)
 # Accuracy: 65.0% (sd 0.12)
