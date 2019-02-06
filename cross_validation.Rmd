@@ -22,13 +22,13 @@ acc <- function(pred, actual){
 ## Cross-Validation for Logistic Regression Model
 ```{r}
 
-cv_lr <- function(data, nfolds=10, nruns=1000, symm=FALSE) {
+cv_lr <- function(dataset, nfolds=10, nruns=1000, symm=FALSE) {
   set.seed(0)
-  n <- nrow(data)
+  n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
   
   for (i in 1:nruns) {
-    data_shuffled <- data[sample(n),]
+    data_shuffled <- dataset[sample(n),]
     folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
   
     log_loss <- NA
@@ -66,13 +66,13 @@ cv_lr <- function(data, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(data, nfolds=10, nruns=24, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
+cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
   set.seed(0)
-  n <- nrow(data)
+  n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
   
   for (i in 1:nruns) {
-    data_shuffled <- data[sample(n),]
+    data_shuffled <- dataset[sample(n),]
     folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
       
     log_loss <- NA
@@ -102,25 +102,25 @@ cv_rf_reg <- function(data, nfolds=10, nruns=24, ntrees=4000, mtry=floor(ncol(df
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_class <- function(data, nfolds=10, nruns=24, ntrees=4000, mtry=floor(sqrt(ncol(df))), nodesize=1) {
+cv_rf_class <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(sqrt(ncol(df))), nodesize=1) {
   set.seed(0)
-  n <- nrow(data)
+  n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
   
   for (i in 1:nruns) {
-    data_shuffled <- data[sample(n),]
+    data_shuffled <- dataset[sample(n),]
     folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
       
     log_loss <- NA
     accuracy <- NA
-      
+    
     for (j in 1:nfolds) {
       test_rows <- which(folds==j,arr.ind=TRUE)
       test_data <- data_shuffled[test_rows,]
       train_data <- data_shuffled[-test_rows,]
       train_data$Home_Won <- as.factor(train_data$Home_Won)
   
-      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees))
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='prob')[,2]
         
       log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)

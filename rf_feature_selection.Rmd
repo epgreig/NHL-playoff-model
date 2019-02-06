@@ -15,19 +15,18 @@ source(purl('import_and_generate_series.Rmd', output = tempfile()))
 
 # IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDA indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDA means that a feature provides at least some predictive value at some level of some trees.
 
-# Random Forest (Classification) Feature Importance
+# Random Forest (Regression) Feature Importance
 ```{r}
 library(randomForest)
 df_full <- df[,c('Home_Won', dStats)]
-df_full$Home_Won <- as.factor(df_full$Home_Won)
 
 # Train a massive random forest so the importance metrics have low noise
-#imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=6, nodesize=60, importance=TRUE))
-#print(imp_model_1$importance[imp_model_1$importance[,3]<0,])
+imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=1, nodesize=61, importance=TRUE))
+print(imp_model_1$importance)
 
 # Remove features with negative MDA
-dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
-df_19 <- df_full[,c('Home_Won', dStats_19)]
+#dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
+#df_19 <- df_full[,c('Home_Won', dStats_19)]
 ```
 
 ```{r}

@@ -53,6 +53,16 @@ for (row in 1:nrow(series)) {
 series
 ```
 
+# Remove highly-correlated features
+```{r}
+corr <- cor(series[,c('Home_Won', dStats)])
+corr_vars <- names(data.frame(corr))[which(corr>0.88 & corr<1, arr.ind = TRUE)[, "col"]]
+
+cor(series[,c('Home_Won', corr_vars)]) # Remove one feature from each highly-correlated pair
+dStats <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dBerg', 'dxGF.60_all', 'dSh._all')]
+```
+
+
 ## Prepare dataframe
 ```{r}
 df <- series[,c('Home_Won', dStats)] # keep only features and target # normalize

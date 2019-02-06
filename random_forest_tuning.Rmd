@@ -7,8 +7,7 @@ output: html_document
 
 ## Hyperparameter Tuning on RF model
 ```{r}
-# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss)
-# Using classification because regression does not track OOB err.rate
+# Grid Search using randomForest's out-of-bag predictions 
 
 rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
   results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
@@ -16,8 +15,8 @@ rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
   for (i in mtrys) {
     for (j in nodesizes) {
       set.seed(1)
-      temp_model <- randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j)
-      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- temp_model$err.rate[ntrees,1]
+      temp_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j))
+      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(-log(abs(1 - temp_model$predicted - temp_model$y)))
     }
     print(i)
   }
