@@ -21,35 +21,36 @@ library(randomForest)
 df_full <- df[,c('Home_Won', dStats)]
 
 # Train a massive random forest so the importance metrics have low noise
-imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=1, nodesize=61, importance=TRUE))
-print(imp_model_1$importance)
+#imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
+#print(imp_model_1$importance)
 
-# Remove features with negative MDA
-#dStats_19 <- dStats[!dStats%in%c('dxGA.60_55', 'dSh._55', 'dENGD', 'dGF.60_all', 'dxGA.60_all', 'dPP.')]
-#df_19 <- df_full[,c('Home_Won', dStats_19)]
+# For each 55/all pair of features, remove the one with lower importance if MDA < 0.35
+dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dGF.60_all', 'dGA.60_55', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dSh._55', 'dSv._55', 'dBerg')]
+df_unpaired <- df[,c('Home_Won', dStats_unpaired)]
 ```
 
 ```{r}
 # Train a second time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_19, ntree=200000, mtry=5, nodesize=60, importance=TRUE))
+#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_unpaired, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
 #print(imp_model_2$importance)
 
-# Remove features with MDA<8e-04 and MDG<0.5
-dStats_11 <- dStats_19[!dStats_19%in%c('dCA.60_55', 'dGA.60_55', 'dxGF.60_55', 'dSv._all', 'dSv._55', 'dTime_Led', 'dW', 'dROW')]
-df_11 <- df_19[,c('Home_Won', dStats_11)]
+# Remove stats with MDA < 2e-03 and MDG < 0.46
+dStats_10 <- dStats_unpaired[!dStats_unpaired%in%c('dCA.60_55', 'dENGD', 'dxGF.60_all', 'dxGA.60_all', 'dSh._all', 'dSv._all', 'dHDCF._55', 'dTime_Led', 'dPP.', 'dW')]
+df_10 <- df_unpaired[,c('Home_Won', dStats_10)]
 ```
 
 ```{r}
 # Train a third time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_11, ntree=200000, mtry=4, nodesize=50, importance=TRUE))
+#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_10, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
 #print(imp_model_3$importance)
-#print(cor(df_11[,dStats_11]))
+#print(cor(df_10))
 
-# Remove any feature which are more than 50% correlated with another feature that has a higher MDA
-dStats_5_uncorr <- c('dGF._all', 'dCF.60_55', 'dxGF._all', 'dGA.60_all', 'dPK.')
+# Generate a lit features which have far higher MDA than all others
+dStats_best <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
 
-# Alternatively, keep the features which have far higher MDA than all others
-dStats_4_best <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
+# Include dxBerg because it has the next highest importance, and dPK because it is uncorrelated with all other important 
+dStats_test1 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.", "dxBerg")
+dStats_test2 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
 ```
 
 
