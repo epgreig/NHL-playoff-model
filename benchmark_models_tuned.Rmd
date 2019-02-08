@@ -31,11 +31,11 @@ source(purl('cross_validation.Rmd', output = tempfile()))
 cv_rf_reg(df, nfolds=10, nruns=32, mtry=1, nodesize=64)
 # BENCHMARK
 # Log Loss: 0.687 (sd 0.10)
-# Accuracy: 59.2% (sd 0.12)
+# Accuracy: 59%
 
 # AFTER TUNING
 # Log Loss: 0.660 (sd 0.05)
-# Accuracy: 61.0% (sd 0.12)
+# Accuracy: 61%
 ```
 
 ## Calculate Tuned Random Forest (Classification) Performance
@@ -43,9 +43,9 @@ cv_rf_reg(df, nfolds=10, nruns=32, mtry=1, nodesize=64)
 cv_rf_class(df, nfolds=10, nruns=24, mtry=1, nodesize=64)
 # BENCHMARK
 # Log Loss: 0.683 (sd 0.08)
-# Accuracy: 59.5% (sd 0.11)
+# Accuracy: 60%
 
 # AFTER TUNING
 # Log Loss: 0.668 (sd 0.10)
-# Accuracy: 62.6% (sd 0.12)
+# Accuracy: 63%
 ```

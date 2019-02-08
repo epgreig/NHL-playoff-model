@@ -46,11 +46,10 @@ df_10 <- df_unpaired[,c('Home_Won', dStats_10)]
 #print(cor(df_10))
 
 # Generate a lit features which have far higher MDA than all others
-dStats_best <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
+dStats_4 <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
 
-# Include dxBerg because it has the next highest importance, and dPK because it is uncorrelated with all other important 
-dStats_test1 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.", "dxBerg")
-dStats_test2 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
+# Include and dPK because it is uncorrelated with all other important 
+dStats_5 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
 ```
 
 
