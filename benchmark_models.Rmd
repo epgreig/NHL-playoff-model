@@ -15,19 +15,19 @@ source(purl('cross_validation.Rmd', output = tempfile()))
 ```{r}
 cv_lr(df)
 # Log Loss: 0.90 (sd 0.25)
-# Accuracy: 54.5% (sd 0.12)
+# Accuracy: 55%
 ```
 
 ## Random Forest (Regression) Benchmark:
 ```{r}
 cv_rf_reg(df)
 # Log Loss: 0.687 (sd 0.10)
-# Accuracy: 59.2% (sd 0.12)
+# Accuracy: 59%
 ```
 
 ## Random Forest (Classification) Benchmark:
 ```{r}
 cv_rf_class(df)
 # Log Loss: 0.683 (sd 0.08)
-# Accuracy: 59.5% (sd 0.11)
+# Accuracy: 59%
 ```

@@ -8,7 +8,6 @@ output: html_document
 ```{r, include=FALSE}
 library(knitr)
 source(purl('import_and_generate_series.Rmd', output = tempfile()))
-# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
 ```
 
 # Tune LASSO's Learning Rate Hyperparameter
@@ -42,10 +41,10 @@ elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_defaul
 
 # Grids attempted:
 #elastic_net_grid(df, num_iterations=500)
-#elastic_net_grid(df, alphas=seq(0.96,1,len=5)^3, lambdas=exp(seq(log(0.025), log(0.045), len=11)), num_iterations=500)
-elastic_net_grid(df, alphas=seq(0.96,1,len=13), lambdas=exp(seq(log(0.039), log(0.044), len=11)), num_iterations=750)
+#elastic_net_grid(df, alphas=seq(0.85,1,len=13), lambdas=exp(seq(log(0.04), log(0.09), len=11)), num_iterations=500)
+elastic_net_grid(df, alphas=seq(0.99,1,len=13), lambdas=exp(seq(log(0.065), log(0.08), len=13)), num_iterations=1000)
 
-#result: alpha=0.966, lambda=0.041
+#result: alpha=0.996, lambda=0.07
 #
 ```
 
@@ -54,7 +53,7 @@ elastic_net_grid(df, alphas=seq(0.96,1,len=13), lambdas=exp(seq(log(0.039), log(
 library(glmnetUtils)
 
 data <- df
-nfolds <- 10
+nfolds <- 11
 nruns <- 2000
 
 set.seed(0)
@@ -73,7 +72,7 @@ for (i in 1:nruns) {
     test_data <- data_shuffled[test_rows,]
     train_data <- data_shuffled[-test_rows,]
 
-    fold_model <- glmnet(`Home_Won` ~ .,data=train_data, family='binomial', alpha=0.966, lambda=0.041)
+    fold_model <- glmnet(`Home_Won` ~ .,data=train_data, family='binomial', alpha=0.996, lambda=0.07)
     test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
   
     log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
@@ -86,10 +85,10 @@ for (i in 1:nruns) {
 print(setNames(data.frame(t(colMeans(results))), c('LR Log Loss', 'Std. Dev.', 'LR Accuracy', 'Std. Dev.')))
 
 # LOGISTIC REGRESSION
-# Log Loss: 0.81 (sd 0.25)
-# Accuracy: 60% (sd 0.12)}
+# Log Loss: 0.90 (sd 0.25)
+# Accuracy: 55%
 
 # ELASTIC NET
-# Log Loss: 0.668 (sd 0.07)
-# Accuracy: 59.6% (sd 0.12)
+# Log Loss: 0.668 (sd 0.05)
+# Accuracy: 58%
 ```
