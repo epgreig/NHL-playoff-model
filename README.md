@@ -16,6 +16,18 @@ This year, instead of a PCA model (see README in branch: "2018") I decided to tr
 
 In the end, elastic net (with mostly L1-regularization, a slight amount of L2-regularization) did outperform the classic logistic regression but the best model was the Random Forest (regression-type) on a set of 5 features representing the matchup difference in: GF% in all situations, GF% in 5v5 situations, expected GF% in all situations, CF/60 in 5v5 situations, and PK%. This model (with the hyperparameters mtry=1, nodesize=45) results in an average Log Loss of 0.632, although it must be mentioned that there is leakage in this number (the entire dataset was used for hyperparameter tuning, so the model has seen the test set in some regard before cross-validation).
 
+## Order of Files
+
+1. import_data
+2. import_and_generate_series
+3. cross_validation
+4. benchmark_models
+5. elastic_net_tuning
+6. random_forest_tuning
+7. benchmark_models_tuned
+8. rf_feature_selection
+9. rf_final_tuning
+
 ## 2019 Predictions
 
 Matchups TBD
