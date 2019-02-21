@@ -37,8 +37,8 @@ rf_grid(df_10, mtrys=1, nodesizes=48:65, ntrees=30000)
 # Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing out regression)
 
 # Grids attempted:
-#rf_grid(df_best, mtrys=1:2, nodesizes=20:100, ntrees=5000)
-rf_grid(df_best, mtrys=1, nodesizes=40:80, ntrees=10000)
+#rf_grid(df_4, mtrys=1:2, nodesizes=20:100, ntrees=5000)
+rf_grid(df_4, mtrys=1, nodesizes=40:80, ntrees=10000)
 
 # result: mtry=1, nodesize=73
 ```
@@ -49,8 +49,8 @@ rf_grid(df_best, mtrys=1, nodesizes=40:80, ntrees=10000)
 # Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing votes)
 
 # Grids attempted:
-#rf_grid(df_test, mtrys=1:2, nodesizes=20:100, ntrees=10000)
-rf_grid(df_test, mtrys=1, nodesizes=40:75, ntrees=30000)
+#rf_grid(df_5, mtrys=1:2, nodesizes=20:100, ntrees=10000)
+rf_grid(df_5, mtrys=1, nodesizes=70:95, ntrees=20000)
 
 # result: mtry=1, nodesize=45, 71
 ```
@@ -71,7 +71,7 @@ cv_rf_reg(df_4, nfolds=11, nruns=32, mtry=1, nodesize=60, ntrees=4000)
 # Log Loss: 0.633 (sd 0.08)
 # Accuracy: 66%
 
-cv_rf_reg(df_5, nfolds=11, nruns=32, mtry=1, nodesize=45, ntrees=4000)
+cv_rf_reg(df_5, nfolds=11, nruns=32, mtry=1, nodesize=45, ntrees=20000)
 # 4 FEATURES
 # Log Loss: 0.632 (sd 0.08)
 # Accuracy: 67%
