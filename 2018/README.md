@@ -35,5 +35,5 @@ In general, Principal Component Analysis results in transformations to the varia
 ## 2018 Predictions
 
 ### First Round
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/2018/prediction_visuals/predictions_2018_visual_west.jpg)
-![alt text](https://raw.githubusercontent.com/epgreig/NHL-playoff-model/master/2018/prediction_visualspredictions_2018_visual_east.jpg)
+![alt text](https://github.com/epgreig/NHL-playoff-model/blob/master/2018/predictions_visuals/predictions_2018_visual_east.jpg)
+![alt text](https://github.com/epgreig/NHL-playoff-model/blob/master/2018/predictions_visuals/predictions_2018_visual_west.jpg)
