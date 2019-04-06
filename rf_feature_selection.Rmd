@@ -41,14 +41,14 @@ df_10 <- df_unpaired[,c('Home_Won', dStats_10)]
 
 ```{r}
 # Train a third time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_10, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
-#print(imp_model_3$importance)
+imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_10, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
+print(imp_model_3$importance)
 #print(cor(df_10))
 
-# Generate a lit features which have far higher MDA than all others
+# Generate a list features which have far higher MDA than all others
 dStats_4 <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
 
-# Include and dPK because it is uncorrelated with all other important 
+# Include dPK because it has relevanceance and is uncorrelated with all other important variables 
 dStats_5 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
 ```
 

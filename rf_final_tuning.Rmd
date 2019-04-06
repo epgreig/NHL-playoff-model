@@ -66,14 +66,15 @@ cv_rf_reg(df_10, nfolds=11, nruns=32, mtry=2, nodesize=62, ntrees=4000)
 # Log Loss: 0.643 (sd 0.07)
 # Accuracy: 66%
 
-cv_rf_reg(df_4, nfolds=11, nruns=32, mtry=1, nodesize=60, ntrees=4000)
+cv_rf_reg(df_4, nfolds=11, nruns=32, mtry=1, nodesize=60, ntrees=20000)
 # 7 FEATURES
 # Log Loss: 0.633 (sd 0.08)
 # Accuracy: 66%
 
 cv_rf_reg(df_5, nfolds=11, nruns=32, mtry=1, nodesize=45, ntrees=20000)
 # 4 FEATURES
-# Log Loss: 0.632 (sd 0.08)
+# Log Loss: 0.633 (sd 0.08)
 # Accuracy: 67%
+
 ```
 
