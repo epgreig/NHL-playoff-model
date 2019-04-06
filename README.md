@@ -10,7 +10,7 @@ Data was collected from corsica.hockey, NaturalStatTrick.com, foxsports.com,and 
 
 ## 2019 Model Development
 
-This year, instead of a PCA model (see README in branch: "2018") I decided to try two other types of model: Random Forest and Elastic Net Logistic Regression. First, I train and tune benchmark models, and measure a cross-validated average Log Loss for each model. Then I do some feature selection to extract smaller subsets of salient features. This is crucial because many of the features were highly correlated (which is not ideal for a random forest model) and with just 165 historical matchups in the training set, it is very easy to overfit with the full set of 32 features. A few subsets are then tuned and their performance is measured with each type of model.
+This year, instead of a PCA model (see README in directory: "2018") I decided to try two other types of model: Random Forest and Elastic Net Logistic Regression. First, I train and tune benchmark models, and measure a cross-validated average Log Loss for each model. Then I do some feature selection to extract smaller subsets of salient features. This is crucial because many of the features were highly correlated (which is not ideal for a random forest model) and with just 165 historical matchups in the training set, it is very easy to overfit with the full set of 32 features. A few subsets are then tuned and their performance is measured with each type of model.
 
 ## 2019 Best Model
 
