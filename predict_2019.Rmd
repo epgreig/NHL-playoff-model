@@ -103,5 +103,5 @@ predict_round <- function(series_data, year, round=0) {
 ```
 
 ```{r}
-predict_round(series, 2019, 1)
+predict_round(series, 2019, 0)
 ```
