@@ -1,0 +1,107 @@
+---
+title: "predict_2019"
+author: "Ethan Greig"
+date: "4/7/2019"
+output: pdf_document
+---
+## Import Raw Team Data
+
+# With Corsica shutting down, data must be imported from a slightly different CSV format for 2019
+
+# import from evolving hockey: corsica stats + copy/paste Sh% and Sv% from past years corsica or current naturalstattrick
+# import from morehockeystats: ENGF, ENGA, B-S stats, Time_Led (set custom format h:mm, calc *1440, /60)
+#   *move WPG for ATL years, and move ARI for 2015
+# import from naturalstattrick: W, ROW, HDCF%_55
+# import from Fox Sports: PP%, PK% (paste as text, text->columns w/ tab delim)
+```{r}
+EH_55 <- read.csv("input_csvs/EH_5v5_08-19.csv", check.names=FALSE)
+EH_55$Season <- strtoi(substr(EH_55$Season, 5, 8))
+EH_55 <- EH_55[, c('Team', 'Season', 'CF_60_55', 'CA_60_55', 'GF_60_55', 'GA_60_55', 'xGF_60_55', 'xGA_60_55', 'Sh%_55', 'Sv%_55')]
+EH_55$`CF%_55` <- round(100* EH_55$`CF_60_55`/(EH_55$`CF_60_55` + EH_55$`CA_60_55`), 2)
+EH_55$`GF%_55` <- round(100* EH_55$`GF_60_55`/(EH_55$`GF_60_55` + EH_55$`GA_60_55`), 2)
+EH_55$`xGF%_55` <- round(100* EH_55$`xGF_60_55`/(EH_55$`xGF_60_55` + EH_55$`xGA_60_55`), 2)
+
+EH_all <- read.csv("input_csvs/EH_all_08-19.csv", check.names=FALSE)
+EH_all$Season <- strtoi(substr(EH_all$Season, 5, 8))
+EH_all <- EH_all[, c('Team', 'Season', 'CF_60_all', 'CA_60_all', 'GF_60_all', 'GA_60_all', 'xGF_60_all', 'xGA_60_all', 'Sh%_all', 'Sv%_all')]
+EH_all$`CF%_all` <- round(100* EH_all$`CF_60_all`/(EH_all$`CF_60_all` + EH_all$`CA_60_all`), 2)
+EH_all$`GF%_all` <- round(100* EH_all$`GF_60_all`/(EH_all$`GF_60_all` + EH_all$`GA_60_all`), 2)
+EH_all$`xGF%_all` <- round(100* EH_all$`xGF_60_all`/(EH_all$`xGF_60_all` + EH_all$`xGA_60_all`), 2)
+
+other_data <- read.csv("input_csvs/misc_stats_08-19.csv", check.names=FALSE)
+other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg')]
+other_data$ENGD <- other_data$ENGF - other_data$ENGA
+
+stats <- c('CF%_55', 'CF_60_55', 'CA_60_55', 'GF%_55', 'GF_60_55', 'GA_60_55', 'xGF%_55', 'xGF_60_55', 'xGA_60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF_60_all', 'CA_60_all', 'GF%_all', 'ENGD', 'GF_60_all', 'GA_60_all', 'xGF%_all', 'xGF_60_all', 'xGA_60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg')
+
+raw_stats <- merge(merge(EH_55, EH_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
+raw_stats <- raw_stats[, c('Team', 'Season', stats)]
+raw_stats
+```
+
+## Create Matchups
+```{r}
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+}
+
+dStats <- make.names(dStats)
+
+# Import series data, add empty columns for stat differences
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+for(i in 1:length(dStats)) {
+  dStat <- dStats[i]
+  series[,dStat] <- NA
+}
+
+# define function to extract stat differences given two teams and a season
+getDifferences <- function(row, df) {
+  df_year <- df[df$Season==row$Season,]
+  home_team <- df_year[as.character(df_year$Team)==as.character(row$Home),]
+  away_team <- df_year[as.character(df_year$Team)==as.character(row$Away),]
+  for (i in 1:length(stats)) {
+    stat <- stats[i]
+    dStat <- dStats[i]
+    row[dStat] <- home_team[stat] - away_team[stat]
+  }
+  return(row)
+}
+
+# fill series data frame with stat differences from regular season
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], raw_stats)
+}
+
+series
+```
+
+```{r}
+dStats_5 <- c("dCF_60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
+```
+
+```{r}
+library(randomForest)
+
+predict_round <- function(series_data, year, round=0) {
+  prior_series <- series_data[series_data$Season<year | (series_data$Season==year & series_data$Round<round),]
+  train <- prior_series[,c('Home_Won', dStats)]
+
+  if (round==0) pred_series <- series_data[series_data$Season==year,]
+  else pred_series <- series_data[series_data$Season==year & series_data$Round==round,]
+  
+  rf_5 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_5)], ntree=250000, mtry=1, nodesize=81))
+  
+  output <- pred_series[,c('Season', 'Round', 'Home', 'Away')]
+  output$rf_5_pred <- predict(rf_5, pred_series, type='response')
+
+  write.table(output, file="~/repos/nhl-playoff-model/output_csvs/predictions_2019_temp.csv", sep=',', col.names=NA)
+}
+```
+
+```{r}
+predict_round(series, 2019, 1)
+```
