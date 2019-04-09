@@ -12,9 +12,13 @@ Data was collected from corsica.hockey, NaturalStatTrick.com, foxsports.com,and 
 
 This year, instead of a PCA model (see README in directory: "2018") I decided to try two other types of model: Random Forest and Elastic Net Logistic Regression. First, I train and tune benchmark models, and measure a cross-validated average Log Loss for each model. Then I do some feature selection to extract smaller subsets of salient features. This is crucial because many of the features were highly correlated (which is not ideal for a random forest model) and with just 165 historical matchups in the training set, it is very easy to overfit with the full set of 32 features. A few subsets are then tuned and their performance is measured with each type of model.
 
+After backtesting the model on the 2018 season, I realized that the model was giving strangely asymmetric results. For example, if the model predicts the same series twice with the Home/Away teams swapped, it will often predict that the Away team will win in both scenarios. This is because the Home team is overwhelmingly more likely to have better stats than the Away team in a playoff series, so the model has a positively skewed perception of what the average stat differences should be for two evenly-matched teams.
+
+I eliminated this effect by duplicating every series with the Home/Away perspective swapped in every training set. So the model no longer has an idea of Home Advantage (I tried adding this as a variable but it was not predictive), and in a sense it is training on twice as much data though that data contains the equal and opposite information of the original data. This model has the benefit of giving very symmetric results when the Home/Away teams are swapped, and actually performed much better on unseen data in terms of Log-Loss!
+
 ## 2019 Best Model
 
-In the end, elastic net (with mostly L1-regularization, a slight amount of L2-regularization) did outperform the classic logistic regression but the best model was the Random Forest (regression-type) on a set of 5 features representing the matchup difference in: GF% in all situations, GF% in 5v5 situations, expected GF% in all situations, CF/60 in 5v5 situations, and PK%. This model (with the hyperparameters mtry=1, nodesize=73) results in an average Log Loss of 0.633. Note that the nodesize must be scaled up with the size of the training set, i.e. when training on 11 years of data instead of 10, the nodesize will be 81.
+In the end, elastic net (with mostly L1-regularization, a slight amount of L2-regularization) did outperform the classic logistic regression but the best model was the Random Forest (regression-type) on a set of 5 features representing the matchup difference in: GF% in all situations, GF% in 5v5 situations, expected GF% in all situations, CF/60 in 5v5 situations, and PK%. This model (with the hyperparameters mtry=1, nodesize=73) results in an average Log Loss of 0.633 (this number contains slight leakage because the entire training set was used to tune the hyperparameters). Note that the nodesize must be scaled up with the size of the training set, i.e. when training on 11 years of data instead of 10, the nodesize will be 81.
 
 ## Order of Files
 
@@ -27,6 +31,7 @@ In the end, elastic net (with mostly L1-regularization, a slight amount of L2-re
 7. benchmark_models_tuned
 8. rf_feature_selection
 9. rf_final_tuning
+10. predict_2019
 
 ## 2019 Predictions
 

@@ -66,7 +66,7 @@ cv_lr <- function(dataset, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
+cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5, symm=FALSE) {
   set.seed(0)
   n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
@@ -82,6 +82,12 @@ cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol
       test_rows <- which(folds==j,arr.ind=TRUE)
       test_data <- data_shuffled[test_rows,]
       train_data <- data_shuffled[-test_rows,]
+
+      if (symm==TRUE) {
+        train_data_flip <- -train_data
+        train_data_flip$Home_Won <- 1-train_data$Home_Won
+        train_data <- rbind(train_data, train_data_flip)
+      }
   
       fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
@@ -102,7 +108,7 @@ cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_class <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(sqrt(ncol(df))), nodesize=1) {
+cv_rf_class <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(sqrt(ncol(df))), nodesize=1, symm=FALSE) {
   set.seed(0)
   n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
@@ -118,6 +124,12 @@ cv_rf_class <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(sq
       test_rows <- which(folds==j,arr.ind=TRUE)
       test_data <- data_shuffled[test_rows,]
       train_data <- data_shuffled[-test_rows,]
+      
+      if (symm==TRUE) {
+        train_data_flip <- -train_data
+        train_data_flip$Home_Won <- 1-train_data$Home_Won
+        train_data <- rbind(train_data, train_data_flip)
+      }
       train_data$Home_Won <- as.factor(train_data$Home_Won)
   
       fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
