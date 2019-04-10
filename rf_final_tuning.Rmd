@@ -50,7 +50,7 @@ rf_grid(df_4, mtrys=1, nodesizes=40:80, ntrees=10000)
 
 # Grids attempted:
 #rf_grid(df_5, mtrys=1:2, nodesizes=35:175, ntrees=4000)
-rf_grid(df_5, mtrys=1, nodesizes=45:120, ntrees=40000)
+rf_grid(df_5, mtrys=1, nodesizes=75:160, ntrees=2000)
 
 # result: mtry=1, nodesize=73
 ```
@@ -62,18 +62,15 @@ rf_grid(df_5, mtrys=1, nodesizes=45:120, ntrees=40000)
 # Accuracy: 61%
 
 cv_rf_reg(df_10, nfolds=11, nruns=32, mtry=2, nodesize=62, ntrees=4000)
-# 13 FEATURES
 # Log Loss: 0.643 (sd 0.07)
 # Accuracy: 66%
 
 cv_rf_reg(df_4, nfolds=11, nruns=32, mtry=1, nodesize=60, ntrees=20000)
-# 7 FEATURES
 # Log Loss: 0.633 (sd 0.08)
 # Accuracy: 66%
 
-cv_rf_reg(df_5, nfolds=11, nruns=64, mtry=1, nodesize=73, ntrees=8000)
-# 13 FEATURES
-# Log Loss: 0.633 (sd 0.07)
+cv_rf_reg(df_5, nfolds=11, nruns=64, mtry=1, nodesize=133, ntrees=8000)
+# Log Loss: 0.646 (sd 0.05)
 # Accuracy: 67%
 
 ```

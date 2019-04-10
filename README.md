@@ -30,18 +30,18 @@ In the end, elastic net (with mostly L1-regularization, a slight amount of L2-re
 
 ## 2019 Predictions
 
-CGY v COL    78.3%
+CGY v COL    74.2%
 
-S.J v VGK    44.0%
+S.J v VGK    45.9%
 
-NSH v DAL    57.5%
+NSH v DAL    56.9%
 
-WPG v STL    36.9%
+WPG v STL    40.5%
 
-T.B v CBJ    79.6%
+T.B v CBJ    74.1%
 
-BOS v TOR    36.3%
+BOS v TOR    39.0%
 
-WSH v CAR    37.4%
+WSH v CAR    40.1%
 
-NYI v PIT    36.1%
+NYI v PIT    39.0%

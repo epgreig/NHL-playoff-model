@@ -16,7 +16,8 @@ rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
     for (j in nodesizes) {
       set.seed(1)
       temp_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j))
-      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(-log(abs(1 - temp_model$predicted - temp_model$y)))
+      ll <- -log(abs(1 - temp_model$predicted - temp_model$y))
+      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(ll) + var(ll)
     }
     print(i)
   }
