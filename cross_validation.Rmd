@@ -66,7 +66,7 @@ cv_lr <- function(dataset, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5, symm=FALSE) {
+cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, maxnodes=NULL, mtry=floor(ncol(df)/3), nodesize=5, symm=FALSE) {
   set.seed(0)
   n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
@@ -89,7 +89,7 @@ cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol
         train_data <- rbind(train_data, train_data_flip)
       }
   
-      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize, maxnodes=NULL))
       test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
         
       log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)

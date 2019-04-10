@@ -49,8 +49,8 @@ rf_grid(df_4, mtrys=1, nodesizes=40:80, ntrees=10000)
 # Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing votes)
 
 # Grids attempted:
-#rf_grid(df_5, mtrys=1:2, nodesizes=35:100, ntrees=10000)
-rf_grid(df_5, mtrys=1, nodesizes=70:90, ntrees=500000)
+rf_grid(df_5, mtrys=1, nodesizes=35:175, ntrees=4000)
+#rf_grid(df_5, mtrys=1, nodesizes=70:90, ntrees=500000)
 
 # result: mtry=1, nodesize=73
 ```
@@ -77,92 +77,5 @@ cv_rf_reg(df_5, nfolds=11, nruns=32, mtry=1, nodesize=73, ntrees=8000, symm=FALS
 cv_rf_reg(df_5, nfolds=11, nruns=84, mtry=1, nodesize=44, ntrees=10000, symm=TRUE)
 # Log Loss: 0.619 (sd 0.08)
 # Accuracy: 68%
-
-
-
-#0.6335192	0.06888202	0.6643939	0.1136377	
-#5000 trees, 24 runs
-#false, 73
-#0.6334157	0.07347739	0.6638889	0.1229517	
-#true, , no home_adv
-#0.6215028	0.07694285	0.6777778	0.1243768
-#40, 15 runs, 7500 trees
-#0.6204313	0.08786663	0.6836364	0.1074594	
-#42, 15 runs, 7500 trees
-#0.6198907	0.09128726	0.6719192	0.113068	
-#44, 15 runs, 7500 trees
-#0.6188048	0.08467165	0.6808081	0.1160283
-#46, 15 runs, 7500 trees
-#0.6178753	0.08257408	0.6783838	0.1183003	
-#48, 15 runs, 7500 trees
-#0.6185209	0.08498342	0.6812121	0.1238794
-
-#44, 32 runs, 20000 trees
-#0.619829	0.08565777	0.6763258	0.1194231
-#45, 32 runs, 20000 trees
-#0.619379	0.0800013	0.6755682	0.1129518	
-#46, 32 runs, 20000 trees
-#0.6208391	0.08921031	0.6755682	0.1223349	
-#47, 32 runs, 20000 trees
-#0.6191093	0.08261456	0.680303	0.11307
-#48, 32 runs, 20000 trees
-#0.6197914	0.08218653	0.6797348	0.117936	
-#49, 32 runs, 20000 trees
-#0.6205943	0.0843747	0.6778409	0.1179983
-#50, 32 runs, 20000 trees
-#0.6191315	0.08373861	0.6776515	0.1170845	
-
-#45, 32 runs, 40000 trees
-#0.6194  0.083  0.678  0.118
-#47, 32 runs, 40000 trees
-#0.6191  0.0852  0.680  0.121
-#49, 32 runs, 40000 trees
-#0.621  0.0881  0.678  0.119
-#51, 32 runs, 40000 trees
-#0.6190 0.0825  0.681  0.119
-#53, 32 runs, 40000 trees
-#0
-#55, 32 runs, 20000 trees
-#0.6194  0.0856  0.684  0.119
-
-# 45 to 57, 84 runs, 1000 trees (SYMM)
-#RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1    0.618495 0.08109002   0.6774621 0.1163672
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6186763 0.08324715   0.6802083 0.1169791
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6186609 0.08367502   0.6784091  0.118496
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6188416 0.08353105   0.6796402 0.1163916
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6200324 0.08449303   0.6785985 0.1164407
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6189086 0.08275021   0.6785985 0.1209671
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#   0.6190979 0.08081792   0.6799242 0.1108863
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#    0.619197 0.08554813    0.679072 0.1173726
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#    0.619546 0.08484013   0.6804924 0.1188956
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#   0.6202518 0.08528298   0.6793561 0.1187839
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#   0.6205417 0.08202725   0.6783144  0.116764
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#   0.6197787 0.08027872   0.6799242 0.1147933
-# RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#   0.6202829 0.08160445   0.6783144 0.1191924
-
-# 43 to 47, 64 runs, 8000 trees (SYMM)
-#RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1    0.6198576 0.08704153   0.6786436 0.1130109
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6189923 0.08486907     0.67886 0.1153162
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6196653 0.08491374   0.6777056 0.1153904
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6200767 0.08505969   0.6779942 0.1175945
-#  RF Log Loss  Std. Dev. RF Accuracy Std. Dev.
-#1   0.6195466 0.08560086   0.6767677 0.1192026
 ```
 

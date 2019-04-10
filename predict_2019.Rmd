@@ -88,12 +88,15 @@ library(randomForest)
 
 predict_round <- function(series_data, year, round=0) {
   prior_series <- series_data[series_data$Season<year | (series_data$Season==year & series_data$Round<round),]
-  train <- prior_series[,c('Home_Won', dStats)]
+  train <- prior_series[,c('Home_Won', dStats_5)]
+  train_reversed <- -train
+  train_reversed$Home_Won <- 1 - train$Home_Won
+  train <- rbind(train, train_reversed)
 
   if (round==0) pred_series <- series_data[series_data$Season==year,]
   else pred_series <- series_data[series_data$Season==year & series_data$Round==round,]
   
-  rf_5 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_5)], ntree=250000, mtry=1, nodesize=81))
+  rf_5 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train, ntree=50000, mtry=1, nodesize=44))
   
   output <- pred_series[,c('Season', 'Round', 'Home', 'Away')]
   output$rf_5_pred <- predict(rf_5, pred_series, type='response')
