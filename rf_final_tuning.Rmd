@@ -49,8 +49,8 @@ rf_grid(df_4, mtrys=1, nodesizes=40:80, ntrees=10000)
 # Prioritize lower mtry (less correlation btw trees) and higher nodesize (smoothing votes)
 
 # Grids attempted:
-#rf_grid(df_5, mtrys=1:2, nodesizes=35:100, ntrees=10000)
-rf_grid(df_5, mtrys=1, nodesizes=70:90, ntrees=500000)
+#rf_grid(df_5, mtrys=1:2, nodesizes=35:175, ntrees=4000)
+rf_grid(df_5, mtrys=1, nodesizes=45:120, ntrees=40000)
 
 # result: mtry=1, nodesize=73
 ```
