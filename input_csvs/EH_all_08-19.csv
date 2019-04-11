@@ -1,4 +1,4 @@
-Team,Season,TOI_all,GP,GF_60_all,GA_60_all,G_diff_60_all,xGF_60_all,xGA_60_all,xG_diff_60_all,SF_60_all,SA_60_all,S_diff_60_all,FF_60_all,FA_60_all,F_diff_60_all,CF_60_all,CA_60_all,C_diff_60_all,Sh%_all,Sv%_all
+Team,Season,TOI_all,GP,GF.60_all,GA.60_all,G_diff.60_all,xGF.60_all,xGA.60_all,xG_diff.60_all,SF.60_all,SA.60_all,S_diff.60_all,FF.60_all,FA.60_all,F_diff.60_all,CF.60_all,CA.60_all,C_diff.60_all,Sh%_all,Sv%_all
 ANA,20072008,4907.32,82,2.41,2.25,0.16,2.18,2.34,-0.16,27.4,28.12,-0.72,38.42,38.05,0.37,48.11,46.85,1.26,8.79,92
 ARI,20072008,4994.93,82,2.51,2.7,-0.19,2.4,2.63,-0.23,30.03,30.25,-0.22,40.72,42.22,-1.5,52.78,54.45,-1.67,8.36,91.06
 ATL,20072008,5011.78,82,2.48,3.18,-0.71,2.1,2.63,-0.53,25.32,33.31,-7.99,33.53,44.14,-10.61,43.72,57.02,-13.3,9.79,90.44

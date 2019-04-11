@@ -16,23 +16,23 @@ output: pdf_document
 ```{r}
 EH_55 <- read.csv("input_csvs/EH_5v5_08-19.csv", check.names=FALSE)
 EH_55$Season <- strtoi(substr(EH_55$Season, 5, 8))
-EH_55 <- EH_55[, c('Team', 'Season', 'CF_60_55', 'CA_60_55', 'GF_60_55', 'GA_60_55', 'xGF_60_55', 'xGA_60_55', 'Sh%_55', 'Sv%_55')]
-EH_55$`CF%_55` <- round(100* EH_55$`CF_60_55`/(EH_55$`CF_60_55` + EH_55$`CA_60_55`), 2)
-EH_55$`GF%_55` <- round(100* EH_55$`GF_60_55`/(EH_55$`GF_60_55` + EH_55$`GA_60_55`), 2)
-EH_55$`xGF%_55` <- round(100* EH_55$`xGF_60_55`/(EH_55$`xGF_60_55` + EH_55$`xGA_60_55`), 2)
+EH_55 <- EH_55[, c('Team', 'Season', 'CF.60_55', 'CA.60_55', 'GF.60_55', 'GA.60_55', 'xGF.60_55', 'xGA.60_55', 'Sh%_55', 'Sv%_55')]
+EH_55$`CF%_55` <- round(100* EH_55$`CF.60_55`/(EH_55$`CF.60_55` + EH_55$`CA.60_55`), 2)
+EH_55$`GF%_55` <- round(100* EH_55$`GF.60_55`/(EH_55$`GF.60_55` + EH_55$`GA.60_55`), 2)
+EH_55$`xGF%_55` <- round(100* EH_55$`xGF.60_55`/(EH_55$`xGF.60_55` + EH_55$`xGA.60_55`), 2)
 
 EH_all <- read.csv("input_csvs/EH_all_08-19.csv", check.names=FALSE)
 EH_all$Season <- strtoi(substr(EH_all$Season, 5, 8))
-EH_all <- EH_all[, c('Team', 'Season', 'CF_60_all', 'CA_60_all', 'GF_60_all', 'GA_60_all', 'xGF_60_all', 'xGA_60_all', 'Sh%_all', 'Sv%_all')]
-EH_all$`CF%_all` <- round(100* EH_all$`CF_60_all`/(EH_all$`CF_60_all` + EH_all$`CA_60_all`), 2)
-EH_all$`GF%_all` <- round(100* EH_all$`GF_60_all`/(EH_all$`GF_60_all` + EH_all$`GA_60_all`), 2)
-EH_all$`xGF%_all` <- round(100* EH_all$`xGF_60_all`/(EH_all$`xGF_60_all` + EH_all$`xGA_60_all`), 2)
+EH_all <- EH_all[, c('Team', 'Season', 'CF.60_all', 'CA.60_all', 'GF.60_all', 'GA.60_all', 'xGF.60_all', 'xGA.60_all', 'Sh%_all', 'Sv%_all')]
+EH_all$`CF%_all` <- round(100* EH_all$`CF.60_all`/(EH_all$`CF.60_all` + EH_all$`CA.60_all`), 2)
+EH_all$`GF%_all` <- round(100* EH_all$`GF.60_all`/(EH_all$`GF.60_all` + EH_all$`GA.60_all`), 2)
+EH_all$`xGF%_all` <- round(100* EH_all$`xGF.60_all`/(EH_all$`xGF.60_all` + EH_all$`xGA.60_all`), 2)
 
 other_data <- read.csv("input_csvs/misc_stats_08-19.csv", check.names=FALSE)
 other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg')]
 other_data$ENGD <- other_data$ENGF - other_data$ENGA
 
-stats <- c('CF%_55', 'CF_60_55', 'CA_60_55', 'GF%_55', 'GF_60_55', 'GA_60_55', 'xGF%_55', 'xGF_60_55', 'xGA_60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF_60_all', 'CA_60_all', 'GF%_all', 'ENGD', 'GF_60_all', 'GA_60_all', 'xGF%_all', 'xGF_60_all', 'xGA_60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg')
+stats <- c('CF%_55', 'CF.60_55', 'CA.60_55', 'GF%_55', 'GF.60_55', 'GA.60_55', 'xGF%_55', 'xGF.60_55', 'xGA.60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF.60_all', 'CA.60_all', 'GF%_all', 'ENGD', 'GF.60_all', 'GA.60_all', 'xGF%_all', 'xGF.60_all', 'xGA.60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg')
 
 raw_stats <- merge(merge(EH_55, EH_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
 raw_stats <- raw_stats[, c('Team', 'Season', stats)]
@@ -80,7 +80,7 @@ series
 ```
 
 ```{r}
-dStats_5 <- c("dCF_60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
+dStats_5 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
 ```
 
 ```{r}
