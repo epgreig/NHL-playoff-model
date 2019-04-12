@@ -30,18 +30,20 @@ In the end, elastic net (with mostly L1-regularization, a slight amount of L2-re
 
 ## 2019 Predictions
 
-CGY v COL    74.2%
+CGY v COL    71.5%
 
-S.J v VGK    45.9%
+S.J v VGK    47.5%
 
-NSH v DAL    56.9%
+NSH v DAL    56.4%
 
-WPG v STL    40.5%
+WPG v STL    43.2%
 
-T.B v CBJ    74.1%
+T.B v CBJ    71.1%
 
-BOS v TOR    39.0%
+BOS v TOR    42.1%
 
-WSH v CAR    40.1%
+WSH v CAR    43.1%
 
-NYI v PIT    39.0%
+NYI v PIT    42.1%
+
+Stanley Cup Final prediction: CGY 51.3% to win over T.B

@@ -17,7 +17,28 @@ rf_grid <- function(data, mtrys, nodesizes, ntrees=4000) {
       set.seed(1)
       temp_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j))
       ll <- -log(abs(1 - temp_model$predicted - temp_model$y))
-      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(ll) + var(ll)
+      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(ll) + sd(ll)/5
+    }
+    print(i)
+  }
+  
+  rownames(results) <- paste('mtry', mtrys, sep='=')
+  colnames(results) <- paste('nodesize', nodesizes, sep='=')
+  write.table(results, file="~/repos/nhl-playoff-model/output_csvs/grid_search_random_forest.csv", sep=',', col.names=NA)
+}
+
+rf_grid_symm <- function(data, mtrys, nodesizes, ntrees=4000) {
+  results <- matrix(nrow=length(mtrys), ncol=length(nodesizes))
+  
+  for (i in mtrys) {
+    for (j in nodesizes) {
+      set.seed(1)
+      data_rev <- -data
+      data_rev$Home_Won <- 1-data$Home_Won
+      data <- rbind(data, data_rev)
+      temp_model <- suppressWarnings(randomForest(`Home_Won` ~ ., data=data, ntree=ntrees, mtry=i, nodesize=j))
+      ll <- -log(abs(1 - temp_model$predicted - temp_model$y))
+      results[i-min(mtrys)+1,j-min(nodesizes)+1] <- mean(ll) + sd(ll)/5
     }
     print(i)
   }

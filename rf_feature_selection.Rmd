@@ -21,34 +21,31 @@ library(randomForest)
 df_full <- df[,c('Home_Won', dStats)]
 
 # Train a massive random forest so the importance metrics have low noise
-#imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
+#imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=1, nodesize=64, importance=TRUE))
 #print(imp_model_1$importance)
 
 # For each 55/all pair of features, remove the one with lower importance if MDA < 0.35
-dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dGF.60_all', 'dGA.60_55', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dSh._55', 'dSv._55', 'dBerg')]
-df_unpaired <- df[,c('Home_Won', dStats_unpaired)]
+dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dGF.60_55', 'dGA.60_55', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dSh._55', 'dSv._55', 'dxBerg', 'dW', 'dENGD')]
+dStats_unpaired
 ```
 
 ```{r}
 # Train a second time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_unpaired, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
+#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_unpaired)], ntree=300000, mtry=1, nodesize=75, importance=TRUE))
 #print(imp_model_2$importance)
 
-# Remove stats with MDA < 2e-03 and MDG < 0.46
-dStats_10 <- dStats_unpaired[!dStats_unpaired%in%c('dCA.60_55', 'dENGD', 'dxGF.60_all', 'dxGA.60_all', 'dSh._all', 'dSv._all', 'dHDCF._55', 'dTime_Led', 'dPP.', 'dW')]
-df_10 <- df_unpaired[,c('Home_Won', dStats_10)]
+# Remove stats with MDG < 0.425, as well as some other stats with MDG <- 0.5 with high correlation to stronger stats
+dStats_9 <- dStats_unpaired[!dStats_unpaired%in%c('dCA.60_55', 'dGF.60_all', 'dxGF.60_all', 'dxGA.60_all', 'dSh._all', 'dSv._all', 'dHDCF._55', 'dPP.', 'dROW')]
+dStats_9
 ```
 
 ```{r}
 # Train a third time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_10, ntree=1000000, mtry=1, nodesize=64, importance=TRUE))
+#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_9)], ntree=300000, mtry=1, nodesize=75, importance=TRUE))
 #print(imp_model_3$importance)
-#print(cor(df_10))
+#print(cor(df[,c('Home_Won', dStats_9)]))
 
-# Generate a list features which have far higher MDA than all others
-dStats_4 <- c('dCF.60_55', 'dGF._55', 'dGF._all', 'dxGF._all')
-
-# Include dPK because it has relevanceance and is uncorrelated with all other important variables 
+# Generate a list features which have far higher MDA than all others, and include dPK because it has relevance and is uncorrelated with all other important variables 
 dStats_5 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
 ```
 
