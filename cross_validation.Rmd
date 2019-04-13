@@ -97,6 +97,45 @@ cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol
 }
 ```
 
+## Cross Validation for Random Forest (Regression, Symmetric) Model
+```{r}
+library(randomForest)
+# tried: using Home_W%
+
+cv_rf_reg_symm <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
+  set.seed(0)
+  n <- nrow(dataset)
+  results <- matrix(nrow=nruns, ncol=4)
+  
+  for (i in 1:nruns) {
+    data_shuffled <- dataset[sample(n),]
+    folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
+      
+    log_loss <- NA
+    accuracy <- NA
+      
+    for (j in 1:nfolds) {
+      test_rows <- which(folds==j,arr.ind=TRUE)
+      test_data <- data_shuffled[test_rows,]
+      train_data <- data_shuffled[-test_rows,]
+      train_data_rev <- -train_data
+      train_data_rev$Home_Won <- 1-train_data$Home_Won
+      train_data <- rbind(train_data_rev)
+  
+      fold_model <- suppressWarnings(randomForest(`Home_Won` ~ .,data=train_data, ntree=ntrees, mtry=mtry, nodesize=nodesize))
+      test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
+        
+      log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
+      accuracy[j] <- acc(test_data$fold_prediction, test_data$Home_Won)
+    }
+      
+    results[i,] = c(mean(log_loss), sd(log_loss), mean(accuracy), sd(accuracy))
+  }
+  
+  print(setNames(data.frame(t(colMeans(results))), c('RF Log Loss', 'Std. Dev.', 'RF Accuracy', 'Std. Dev.')))
+}
+```
+
 ## Cross Validation for Random Forest (Classification) Model
 ```{r}
 library(randomForest)
