@@ -30,6 +30,7 @@ In the end, elastic net (with mostly L1-regularization, a slight amount of L2-re
 
 ## 2019 Predictions
 
+### Before First Round
 CGY v COL    71.5%
 
 S.J v VGK    47.5%
@@ -47,3 +48,14 @@ WSH v CAR    43.1%
 NYI v PIT    42.1%
 
 Stanley Cup Final prediction: CGY 51.3% to win over T.B
+
+### Before Second Round
+S.J v COL    60.0%
+
+STL v DAL    59.9%
+
+BOS v CBJ    58.4%
+
+NYI v CAR    43.8%
+
+Stanley Cup Final prediction: CAR 52.2% to win over STL
