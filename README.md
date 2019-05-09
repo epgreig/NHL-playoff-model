@@ -59,3 +59,10 @@ BOS v CBJ    58.4%
 NYI v CAR    43.8%
 
 Stanley Cup Final prediction: CAR 52.2% to win over STL
+
+### Before Third Round
+S.J v STL    43.9%
+
+BOS v CAR    43.9%
+
+Stanley Cup Final prediction: CAR 52.3% to win over STL
