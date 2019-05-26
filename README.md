@@ -66,3 +66,6 @@ S.J v STL    43.9%
 BOS v CAR    43.9%
 
 Stanley Cup Final prediction: CAR 52.3% to win over STL
+
+### Before Stanley Cup Final
+BOS v STL    52.5%
