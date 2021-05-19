@@ -1,12 +1,12 @@
 ---
-title: "predict_2019"
+title: "predict_2021"
 author: "Ethan Greig"
-date: "4/7/2019"
+date: "5/16/2021"
 output: pdf_document
 ---
 ## Import Raw Team Data
 
-# With Corsica shutting down, data must be imported from a slightly different CSV format for 2019
+# With Corsica shutting down, data must be imported from a slightly different CSV format for 2019 onward
 
 # import from evolving hockey: corsica stats + copy/paste Sh% and Sv% from past years corsica or current naturalstattrick
 # import from morehockeystats: ENGF, ENGA, B-S stats, Time_Led (set custom format h:mm, calc *1440, /60)
@@ -14,21 +14,21 @@ output: pdf_document
 # import from naturalstattrick: W, ROW, HDCF%_55
 # import from Fox Sports: PP%, PK% (paste as text, text->columns w/ tab delim)
 ```{r}
-EH_55 <- read.csv("input_csvs/EH_5v5_08-19.csv", check.names=FALSE)
+EH_55 <- read.csv("input_csvs/EH_5v5_08-21.csv", check.names=FALSE)
 EH_55$Season <- strtoi(substr(EH_55$Season, 5, 8))
 EH_55 <- EH_55[, c('Team', 'Season', 'CF.60_55', 'CA.60_55', 'GF.60_55', 'GA.60_55', 'xGF.60_55', 'xGA.60_55', 'Sh%_55', 'Sv%_55')]
 EH_55$`CF%_55` <- round(100* EH_55$`CF.60_55`/(EH_55$`CF.60_55` + EH_55$`CA.60_55`), 2)
 EH_55$`GF%_55` <- round(100* EH_55$`GF.60_55`/(EH_55$`GF.60_55` + EH_55$`GA.60_55`), 2)
 EH_55$`xGF%_55` <- round(100* EH_55$`xGF.60_55`/(EH_55$`xGF.60_55` + EH_55$`xGA.60_55`), 2)
 
-EH_all <- read.csv("input_csvs/EH_all_08-19.csv", check.names=FALSE)
+EH_all <- read.csv("input_csvs/EH_all_08-21.csv", check.names=FALSE)
 EH_all$Season <- strtoi(substr(EH_all$Season, 5, 8))
 EH_all <- EH_all[, c('Team', 'Season', 'CF.60_all', 'CA.60_all', 'GF.60_all', 'GA.60_all', 'xGF.60_all', 'xGA.60_all', 'Sh%_all', 'Sv%_all')]
 EH_all$`CF%_all` <- round(100* EH_all$`CF.60_all`/(EH_all$`CF.60_all` + EH_all$`CA.60_all`), 2)
 EH_all$`GF%_all` <- round(100* EH_all$`GF.60_all`/(EH_all$`GF.60_all` + EH_all$`GA.60_all`), 2)
 EH_all$`xGF%_all` <- round(100* EH_all$`xGF.60_all`/(EH_all$`xGF.60_all` + EH_all$`xGA.60_all`), 2)
 
-other_data <- read.csv("input_csvs/misc_stats_08-19.csv", check.names=FALSE)
+other_data <- read.csv("input_csvs/misc_stats_08-21.csv", check.names=FALSE)
 other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg')]
 other_data$ENGD <- other_data$ENGF - other_data$ENGA
 
@@ -98,10 +98,10 @@ predict_round <- function(series_data, year, round=0) {
   output <- pred_series[,c('Season', 'Round', 'Home', 'Away')]
   output$rf_5_pred <- predict(rf_5, pred_series, type='response')
 
-  write.table(output, file="~/repos/nhl-playoff-model/output_csvs/predictions_2019_temp.csv", sep=',', col.names=NA)
+  write.table(output, file="~/repos/nhl-playoff-model/output_csvs/predictions_2021_temp.csv", sep=',', col.names=NA)
 }
 ```
 
 ```{r}
-predict_round(series, 2019, 0)
+predict_round(series, 2019, 4)
 ```
