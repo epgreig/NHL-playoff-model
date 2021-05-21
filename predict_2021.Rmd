@@ -9,7 +9,7 @@ output: pdf_document
 # With Corsica shutting down, data must be imported from a slightly different CSV format for 2019 onward
 
 # import from evolving hockey: corsica stats + copy/paste Sh% and Sv% from past years corsica or current naturalstattrick
-# import from morehockeystats: ENGF, ENGA, B-S stats, Time_Led (set custom format h:mm, calc *1440, /60)
+# import from morehockeystats: ENGF, ENGA, B-S stats, Time_Led (set to number format, multiply by 24)
 #   *move WPG for ATL years, and move ARI for 2015
 # import from naturalstattrick: W, ROW, HDCF%_55
 # import from Fox Sports: PP%, PK% (paste as text, text->columns w/ tab delim)
