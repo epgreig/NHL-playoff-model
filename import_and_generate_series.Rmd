@@ -25,7 +25,7 @@ dStats <- make.names(dStats)
 
 # Import series data, add empty columns for stat differences
 series <- read.csv("input_csvs/all_playoff_series.csv")
-series <- series[series$Season<2019,]
+series <- series[series$Season<2021,]
 series$Home_Won <- round(series$Home_W., 0)
 for(i in 1:length(dStats)) {
   dStat <- dStats[i]

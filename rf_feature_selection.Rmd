@@ -8,7 +8,9 @@ output: html_document
 ```{r, include=FALSE}
 library(knitr)
 source(purl('import_and_generate_series.Rmd', output = tempfile()))
-# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+# Note that only data from 2008-2019 is imported here. 2020 data is kept as a holdout set
+
+df
 ```
 
 # %IncMSE or MeanDecreaseAccuracy (MDA): a feature with a low MDA indicates that if its values are permuted in the training set, the model does not perform much worse. This either indicates that the feature is worthless or that the information in this feature can be gathered from other features instead. So a higher MDA feature is likely to have more unique IV compared to all other features.
@@ -24,29 +26,32 @@ df_full <- df[,c('Home_Won', dStats)]
 #imp_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df_full, ntree=200000, mtry=1, nodesize=64, importance=TRUE))
 #print(imp_model_1$importance)
 
-# For each 55/all pair of features, remove the one with lower importance if MDA < 0.35
-dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dGF.60_55', 'dGA.60_55', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dSh._55', 'dSv._55', 'dxBerg', 'dW', 'dENGD')]
+# For each 55/all pair of features, remove the one with lower importance if MDA < 0.37
+dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF.60_all', 'dCA.60_all', 'dGF.60_all', 'dGA.60_all', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dSh._all', 'dSv._55', 'dW', 'dENGD')]
 dStats_unpaired
 ```
 
 ```{r}
 # Train a second time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_unpaired)], ntree=300000, mtry=1, nodesize=75, importance=TRUE))
+#imp_model_2 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_unpaired)], ntree=200000, mtry=3, nodesize=25, importance=TRUE))
+#print(cor(df[,c('Home_Won', dStats_unpaired)]))
+#print(imp_model_2)
 #print(imp_model_2$importance)
 
 # Remove stats with MDG < 0.425, as well as some other stats with MDG <- 0.5 with high correlation to stronger stats
-dStats_9 <- dStats_unpaired[!dStats_unpaired%in%c('dCA.60_55', 'dGF.60_all', 'dxGF.60_all', 'dxGA.60_all', 'dSh._all', 'dSv._all', 'dHDCF._55', 'dPP.', 'dROW')]
-dStats_9
+dStats_10 <- dStats_unpaired[!dStats_unpaired%in%c('dCA.60_55', 'dCF._all', 'dGF.60_all', 'dxGF.60_all', 'dxGA.60_all', 'dSh._all', 'dSv._all', 'dHDCF._55', 'dPP.', 'dROW')]
+dStats_10
 ```
 
 ```{r}
 # Train a third time (with scaled-down hyperparams)  to identify more weak features
-#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_9)], ntree=300000, mtry=1, nodesize=75, importance=TRUE))
+#imp_model_3 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=df[,c('Home_Won', dStats_10)], ntree=300000, mtry=1, nodesize=75, importance=TRUE))
+#print(imp_model_3)
 #print(imp_model_3$importance)
-#print(cor(df[,c('Home_Won', dStats_9)]))
+#print(cor(df[,c('Home_Won', dStats_10)]))
 
 # Generate a list features which have far higher MDA than all others, and include dPK because it has relevance and is uncorrelated with all other important variables 
-dStats_5 <- c("dCF.60_55", "dGF._55","dGF._all", "dxGF._all",  "dPK.")
+dStats_4 <- c("dCF.60_55", "dGF._55", "dxGF._all",  "dPK.")
 ```
 
 

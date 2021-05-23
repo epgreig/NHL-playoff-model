@@ -12,21 +12,27 @@ output: html_document
 # import from natural stat trick: W, ROW, HDCF%_55
 # import from Fox Sports: PP%, PK% (paste as text, text->columns w/ tab delim)
 ```{r}
-corsica_55 <- read.csv("input_csvs/corsica_5v5_08-18.csv", check.names=FALSE)
-corsica_55$Season <- strtoi(substr(corsica_55$Season, 6, 9))
-corsica_55 <- corsica_55[, c('Team', 'Season', 'CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55')]
+EH_55 <- read.csv("input_csvs/EH_5v5_08-21.csv", check.names=FALSE)
+EH_55$Season <- strtoi(substr(EH_55$Season, 5, 8))
+EH_55 <- EH_55[, c('Team', 'Season', 'CF.60_55', 'CA.60_55', 'GF.60_55', 'GA.60_55', 'xGF.60_55', 'xGA.60_55', 'Sh%_55', 'Sv%_55')]
+EH_55$`CF%_55` <- round(100* EH_55$`CF.60_55`/(EH_55$`CF.60_55` + EH_55$`CA.60_55`), 2)
+EH_55$`GF%_55` <- round(100* EH_55$`GF.60_55`/(EH_55$`GF.60_55` + EH_55$`GA.60_55`), 2)
+EH_55$`xGF%_55` <- round(100* EH_55$`xGF.60_55`/(EH_55$`xGF.60_55` + EH_55$`xGA.60_55`), 2)
 
-corsica_all <- read.csv("input_csvs/corsica_all_08-18.csv", check.names=FALSE)
-corsica_all$Season <- strtoi(substr(corsica_all$Season, 6, 9))
-corsica_all <- corsica_all[, c('Team', 'Season', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF_all', 'GA_all', 'GF%_all', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all')]
+EH_all <- read.csv("input_csvs/EH_all_08-21.csv", check.names=FALSE)
+EH_all$Season <- strtoi(substr(EH_all$Season, 5, 8))
+EH_all <- EH_all[, c('Team', 'Season', 'CF.60_all', 'CA.60_all', 'GF.60_all', 'GA.60_all', 'xGF.60_all', 'xGA.60_all', 'Sh%_all', 'Sv%_all')]
+EH_all$`CF%_all` <- round(100* EH_all$`CF.60_all`/(EH_all$`CF.60_all` + EH_all$`CA.60_all`), 2)
+EH_all$`GF%_all` <- round(100* EH_all$`GF.60_all`/(EH_all$`GF.60_all` + EH_all$`GA.60_all`), 2)
+EH_all$`xGF%_all` <- round(100* EH_all$`xGF.60_all`/(EH_all$`xGF.60_all` + EH_all$`xGA.60_all`), 2)
 
-other_data <- read.csv("input_csvs/misc_stats_08-18.csv", check.names=FALSE)
-other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')]
+other_data <- read.csv("input_csvs/misc_stats_08-21.csv", check.names=FALSE)
+other_data <- other_data[, c('Team', 'Season', 'HDCF%_55', 'Time_Led', 'ENGF', 'ENGA', 'PP%', 'PK%', 'W', 'ROW', 'Berg')]
 other_data$ENGD <- other_data$ENGF - other_data$ENGA
 
-stats <- c('CF%_55', 'CF/60_55', 'CA/60_55', 'GF%_55', 'GF/60_55', 'GA/60_55', 'xGF%_55', 'xGF/60_55', 'xGA/60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF/60_all', 'CA/60_all', 'GF%_all', 'ENGD', 'GF/60_all', 'GA/60_all', 'xGF%_all', 'xGF/60_all', 'xGA/60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg', 'xBerg')
+stats <- c('CF%_55', 'CF.60_55', 'CA.60_55', 'GF%_55', 'GF.60_55', 'GA.60_55', 'xGF%_55', 'xGF.60_55', 'xGA.60_55', 'Sh%_55', 'Sv%_55', 'CF%_all', 'CF.60_all', 'CA.60_all', 'GF%_all', 'ENGD', 'GF.60_all', 'GA.60_all', 'xGF%_all', 'xGF.60_all', 'xGA.60_all', 'Sh%_all', 'Sv%_all', 'HDCF%_55', 'Time_Led', 'PP%', 'PK%', 'W', 'ROW', 'Berg')
 
-raw_stats <- merge(merge(corsica_55, corsica_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
+raw_stats <- merge(merge(EH_55, EH_all, by=c("Team", "Season")), other_data, by=c("Team", "Season"))
 raw_stats <- raw_stats[, c('Team', 'Season', stats)]
 raw_stats
 ```

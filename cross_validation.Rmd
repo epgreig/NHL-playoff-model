@@ -66,7 +66,7 @@ cv_lr <- function(dataset, nfolds=10, nruns=1000, symm=FALSE) {
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
+cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=6000, mtry=floor(ncol(df)/3), nodesize=5) {
   set.seed(0)
   n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)
@@ -102,7 +102,7 @@ cv_rf_reg <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol
 library(randomForest)
 # tried: using Home_W%
 
-cv_rf_reg_symm <- function(dataset, nfolds=10, nruns=32, ntrees=4000, mtry=floor(ncol(df)/3), nodesize=5) {
+cv_rf_reg_symm <- function(dataset, nfolds=10, nruns=32, ntrees=6000, mtry=floor(ncol(df)/3), nodesize=5) {
   set.seed(0)
   n <- nrow(dataset)
   results <- matrix(nrow=nruns, ncol=4)

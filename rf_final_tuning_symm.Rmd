@@ -16,7 +16,7 @@ source(purl('rf_feature_selection.Rmd', output = tempfile()))
 ```{r}
 df_unpaired <- df[,c('Home_Won', dStats_unpaired)]
 df_9 <- df[,c('Home_Won', dStats_9)]
-df_5 <- df[,c('Home_Won', dStats_5)]
+df_4 <- df[,c('Home_Won', dStats_4)]
 ```
 
 ## Hyperparameter Tuning on reduced feature set RF (unpaired features)
@@ -26,9 +26,9 @@ df_5 <- df[,c('Home_Won', dStats_5)]
 
 # Grids attempted:
 
-#rf_grid_symm(df_unpaired, mtrys=1, nodesizes=105:185, ntrees=5000)
+rf_grid_symm(df_unpaired, mtrys=c(1,2,4,8,16), nodesizes=seq(20,200,by=10), ntrees=5000)
 #rf_grid_symm(df_unpaired, mtrys=1, nodesizes=175:215, ntrees=30000)
-rf_grid_symm(df_unpaired, mtrys=1, nodesizes=195:210, ntrees=60000)
+#rf_grid_symm(df_unpaired, mtrys=1, nodesizes=195:210, ntrees=60000)
 
 # result: mtry=1, nodesize=203
 ```
