@@ -34,7 +34,7 @@ predict_round <- function(series_data, year, round=0) {
   if (round==0) pred_series <- series_data[series_data$Season==year,]
   else pred_series <- series_data[series_data$Season==year & series_data$Round==round,]
   
-  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4)], ntree=50000, mtry=1, nodesize=129))
+  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4)], ntree=500000, mtry=1, nodesize=25))
   
   output <- pred_series[,c('Season', 'Round', 'Home', 'Away')]
   output$rf_4_pred <- predict(rf_4, pred_series, type='response')
@@ -44,5 +44,5 @@ predict_round <- function(series_data, year, round=0) {
 ```
 
 ```{r}
-predict_round(series, 2020, 1)
+predict_round(series, 2021, 0)
 ```
