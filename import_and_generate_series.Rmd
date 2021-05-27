@@ -25,7 +25,6 @@ dStats <- make.names(dStats)
 
 # Import series data, add empty columns for stat differences
 series <- read.csv("input_csvs/all_playoff_series.csv")
-series <- series[series$Season<2021,]
 series$Home_Won <- round(series$Home_W., 0)
 for(i in 1:length(dStats)) {
   dStat <- dStats[i]
@@ -53,7 +52,8 @@ for (row in 1:nrow(series)) {
 series
 ```
 
-## Prepare dataframe
+## Prepare clean dataframe for prediction
 ```{r}
-df <- series[,c('Home_Won', dStats)] # keep only features and target # normalize
+series_stats <- series[,c('Home_Won', dStats)]
+series_stats_training <- series_stats[series$Season < 2021,]
 ```
