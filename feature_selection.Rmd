@@ -24,13 +24,17 @@ print(importance_model_1$importance)
 
 # From each category of stats (Corsis, Goals, Expected Goals, Shooting %, Save %, and Wins), keep just one feature or one pair of For/Against feature, based on IncNodePurity.
 dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF._all', 'dCA.60_55', 'dCF.60_all', 'dGF._55', 'dGF.60_55', 'dGA.60_55', 'dGF.60_all', 'dGA.60_all', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dxGA.60_all', 'dxGF.60_all', 'dSh._all', 'dSv._55', 'dW')]
+
+series_stats_unpaired <- series_stats[,c('Home_Won', dStats_unpaired)]
 series_stats_unpaired_training <- series_stats_training[,c('Home_Won', dStats_unpaired)]
 dStats_unpaired
 ```
 
 ```{r}
 # derive a set of de-correlated features using Princiapl Component Analysis (PCA)
-
+pca <- princomp(series_stats_unpaired[,dStats_unpaired], cor=TRUE)
+pca$loadings
+plot(pca)
 ```
 
 ```{r}
