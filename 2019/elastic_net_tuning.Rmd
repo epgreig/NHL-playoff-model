@@ -1,0 +1,94 @@
+---
+title: "elastic_net_tuning"
+author: "Ethan Greig"
+date: "1/20/2019"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+```
+
+# Tune LASSO's Learning Rate Hyperparameter
+```{r}
+library(glmnetUtils)
+# Use elastic net (mixture of L1 and L2 regularization) for feature selection. Use mixing parameter alpha=0.5 and vary the penalty coefficient lambda, while monitoring which features have non-zero coefficients in each iteration.
+
+# preliminary test of lambda and alpha ranges
+#ballpark_model <- cva.glmnet(Home_Won ~ ., data=df, family='binomial')
+#plot(ballpark_model)
+
+alphas_default <- seq(0, 1, len=21)^3 # default range in cva.glmnet
+lambdas_default <- exp(seq(-4, 0, len=21)) # equally log-spaced
+
+elastic_net_grid <- function(data, alphas=alphas_default, lambdas=lambdas_default, num_iterations) {
+  a <- length(alphas)
+  l <- length(lambdas)
+  avg_error <- matrix(nrow=a,ncol=l)
+  for (i in 1:a) {
+    cvms <- matrix(nrow=num_iterations,ncol=l)
+    for (k in 1:num_iterations) {
+      temp_model <- cv.glmnet(Home_Won ~ ., data=data, alpha=alphas[i], lambda = lambdas, family='binomial')
+      cvms[k,] <- temp_model$cvm
+    }
+    avg_error[i,] <- colMeans(cvms)
+  }
+  rownames(avg_error) <- paste('alpha', alphas, sep='=')
+  colnames(avg_error) <- paste('lambda', rev(lambdas), sep='=')
+  write.table(avg_error, file="~/repos/nhl-playoff-model/output_csvs/grid_search_elastic_net.csv", sep=',', col.names=NA)
+}
+
+# Grids attempted:
+#elastic_net_grid(df, num_iterations=500)
+#elastic_net_grid(df, alphas=seq(0.85,1,len=13), lambdas=exp(seq(log(0.04), log(0.09), len=11)), num_iterations=500)
+elastic_net_grid(df, alphas=seq(0.99,1,len=13), lambdas=exp(seq(log(0.065), log(0.08), len=13)), num_iterations=1000)
+
+#result: alpha=0.996, lambda=0.07
+#
+```
+
+## Calculate Tuned Elastic Net Performance
+```{r}
+library(glmnetUtils)
+
+data <- df
+nfolds <- 11
+nruns <- 2000
+
+set.seed(0)
+n <- nrow(data)
+results <- matrix(nrow=nruns, ncol=4)
+  
+for (i in 1:nruns) {
+  data_shuffled <- data[sample(n),]
+  folds <- cut(seq(1,n),breaks=nfolds,labels=FALSE)
+
+  log_loss <- NA
+  accuracy <- NA
+    
+  for (j in 1:nfolds) {
+    test_rows <- which(folds==j,arr.ind=TRUE)
+    test_data <- data_shuffled[test_rows,]
+    train_data <- data_shuffled[-test_rows,]
+
+    fold_model <- glmnet(`Home_Won` ~ .,data=train_data, family='binomial', alpha=0.996, lambda=0.07)
+    test_data$fold_prediction <- predict(fold_model, subset(test_data, select=-Home_Won), type='response')
+  
+    log_loss[j] <- logLoss(test_data$fold_prediction, test_data$Home_Won)
+    accuracy[j] <- acc(test_data$fold_prediction, test_data$Home_Won)
+  }
+  
+  results[i,] = c(mean(log_loss), sd(log_loss), mean(accuracy), sd(accuracy))
+}
+
+print(setNames(data.frame(t(colMeans(results))), c('LR Log Loss', 'Std. Dev.', 'LR Accuracy', 'Std. Dev.')))
+
+# LOGISTIC REGRESSION
+# Log Loss: 0.90 (sd 0.25)
+# Accuracy: 55%
+
+# ELASTIC NET
+# Log Loss: 0.668 (sd 0.05)
+# Accuracy: 58%
+```

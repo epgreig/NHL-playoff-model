@@ -1,0 +1,73 @@
+---
+title: "backtest_final_models"
+author: "Ethan Greig"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('rf_feature_selection.Rmd', output = tempfile()))
+```
+
+# Repeat some of the actions from import_and_generate_series, but with all data
+```{r}
+dStats <- stats
+for (i in 1:length(stats)) {
+  stat <- stats[i]
+  dStat <- paste0('d', stat)
+  dStats[i] <- dStat
+}
+
+dStats <- make.names(dStats)
+
+# Re-build series to include all playoff series data, not just 2008-2017
+series <- read.csv("input_csvs/all_playoff_series.csv")
+series$Home_Won <- round(series$Home_W., 0)
+for(i in 1:length(dStats)) {
+  dStat <- dStats[i]
+  series[,dStat] <- NA
+}
+
+# fill series data frame with stat differences from regular season
+for (row in 1:nrow(series)) {
+  series[row,] <- getDifferences(series[row,], raw_stats)
+}
+
+df <- series[,c('Home_Won', dStats)] # keep only features and target
+```
+
+```{r}
+library(glmnetUtils)
+library(randomForest)
+
+predict_round <- function(series_data, year, round=0) {
+  prior_series <- series_data[series_data$Season<year | (series_data$Season==year & series_data$Round<round),]
+  train <- prior_series[,c('Home_Won', dStats)]
+  
+  if (round==0) pred_series <- series_data[series_data$Season==year,]
+  else pred_series <- series_data[series_data$Season==year & series_data$Round==round,]
+  test <- pred_series[,c('Home_Won', dStats)]
+  
+  rf_10 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_10)], ntree=250000, mtry=1, nodesize=62))
+  rf_5 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_5)], ntree=250000, mtry=1, nodesize=60))
+  rf_4 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=train[,c('Home_Won', dStats_4)], ntree=250000, mtry=1, nodesize=45))
+  en <- glmnet(Home_Won ~ ., data=train, alpha=0.99, lambda = 0.035, family='binomial')
+  
+  output <- pred_series[,c('Season', 'Round', 'Home', 'Away', 'Home_Won')]
+  output$rf_10_pred <- predict(rf_10, test, type='response')
+  output$rf_10_loss <- -log(abs(1-output$Home_Won-output$rf_10_pred))
+  output$rf_5_pred <- predict(rf_5, test, type='response')
+  output$rf_5_loss <- -log(abs(1-output$Home_Won-output$rf_5_pred))
+  output$rf_4_pred <- predict(rf_4, test, type='response')
+  output$rf_4_loss <- -log(abs(1-output$Home_Won-output$rf_4_pred))
+  output$en_pred <- predict(en, test, type='response')
+  output$en_loss <- -log(abs(1-output$Home_Won-output$en_pred))
+  
+  write.table(output, file="~/repos/nhl-playoff-model/output_csvs/predictions_2018_backtest.csv", sep=',', col.names=NA)
+}
+```
+
+```{r}
+predict_round(series, 2018)
+```

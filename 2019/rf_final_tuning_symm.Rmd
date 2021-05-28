@@ -1,0 +1,67 @@
+---
+title: "rf_final_tuning.Rmd"
+author: "Ethan Greig"
+date: "1/27/2019"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('random_forest_tuning.Rmd', output = tempfile()))
+source(purl('cross_validation.Rmd', output = tempfile()))
+source(purl('rf_feature_selection.Rmd', output = tempfile()))
+```
+
+## Define subsets of full features
+```{r}
+df_unpaired <- df[,c('Home_Won', dStats_unpaired)]
+df_10 <- df[,c('Home_Won', dStats_10)]
+df_4 <- df[,c('Home_Won', dStats_4)]
+```
+
+## Hyperparameter Tuning on reduced feature set RF
+```{r}
+# Grid Search using randomForest's built in OOB error (not cross-validated Log Loss).
+# rf_grid outputs mean + sd/5 of log loss error, find minimum value over grid of hyperparameters
+
+# Grids attempted:
+
+#rf_grid_symm(df_10, mtrys=c(1,2,3,4,6,8), nodesizes=seq(20,200,by=10), ntrees=5000)
+#rf_grid_symm(df_4, mtrys=c(1), nodesizes=seq(180,250,by=5), ntrees=20000)
+#rf_grid_symm(df_4, mtrys=c(1), nodesizes=seq(215,235,by=1), ntrees=40000)
+
+rf_grid_symm(df_unpaired, mtrys=c(1,2,4,8), nodesizes=seq(20,200,by=10), ntrees=5000)
+
+# result: mtry=1, nodesize=203
+```
+
+## Random Forest (Regression, Symmetric) Performance, Tuned on subsets of features
+```{r}
+# FULL FEATURES (2019)
+# Log Loss: 0.660 (sd 0.05)
+# Accuracy: 61%
+
+# 2019
+#cv_rf_reg_symm(df_5, nfolds=11, nruns=64, mtry=1, nodesize=189, ntrees=12000)
+# Log Loss: 0.653 (sd 0.03)
+# Accuracy: 68%
+
+# 2021
+#cv_rf_reg_symm(df_4, nfolds=12, nruns=64, mtry=1, nodesize=228, ntrees=10000)
+# Log Loss: 0.657 (sd 0.03)
+# Accuracy: 65%
+
+# 2021
+#cv_rf_reg_symm(df_4, nfolds=12, nruns=64, mtry=1, nodesize=140, ntrees=10000)
+# Log Loss: 0.648 (sd 0.04)
+# Accuracy: 66%
+
+# 2021
+#cv_rf_reg_symm(df_4, nfolds=12, nruns=64, mtry=1, nodesize=89, ntrees=10000)
+# Log Loss: 0.634 (sd 0.05)
+# Accuracy: 68%
+
+cv_rf_reg_symm(df_4, nfolds=12, nruns=64, mtry=1, nodesize=25, ntrees=10000)
+# Log Loss: 0.634 (sd 0.05)
+# Accuracy: 68%
+```

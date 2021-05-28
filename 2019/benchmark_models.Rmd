@@ -1,0 +1,33 @@
+---
+title: "PREDICT_2019"
+author: "Ethan Greig"
+date: "11/17/2018"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+source(purl('cross_validation.Rmd', output = tempfile()))
+```
+
+## Logistic Regression Benchmark:
+```{r}
+cv_lr(df)
+# Log Loss: 0.90 (sd 0.25)
+# Accuracy: 55%
+```
+
+## Random Forest (Regression) Benchmark:
+```{r}
+cv_rf_reg(df)
+# Log Loss: 0.687 (sd 0.10)
+# Accuracy: 59%
+```
+
+## Random Forest (Classification) Benchmark:
+```{r}
+cv_rf_class(df)
+# Log Loss: 0.683 (sd 0.08)
+# Accuracy: 59%
+```

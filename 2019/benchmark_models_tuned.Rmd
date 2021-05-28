@@ -1,0 +1,51 @@
+---
+title: "benchmark_tuning.Rmd"
+author: "Ethan Greig"
+date: "1/20/2019"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('random_forest_tuning.Rmd', output = tempfile()))
+# Note that only data from 2008-2017 is imported here. 2018 data is kept as a holdout set
+```
+
+## Hyperparameter Tuning on RF model
+```{r}
+# Grids attempted:
+#rf_grid(df, mtrys=1:4, nodesizes=40:100)
+rf_grid(df, mtrys=1, nodesizes=45:70, ntrees=5000)
+
+# result: mtry=1, nodesize=64
+```
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('cross_validation.Rmd', output = tempfile()))
+# defines the cross-validation functions
+```
+
+## Calculate Tuned Random Forest (Regression) Performance
+```{r}
+cv_rf_reg(df, nfolds=11, nruns=32, mtry=1, nodesize=64)
+# BENCHMARK
+# Log Loss: 0.687 (sd 0.10)
+# Accuracy: 59%
+
+# AFTER TUNING
+# Log Loss: 0.660 (sd 0.05)
+# Accuracy: 61%
+```
+
+## Calculate Tuned Random Forest (Classification) Performance
+```{r}
+cv_rf_class(df, nfolds=11, nruns=24, mtry=1, nodesize=64)
+# BENCHMARK
+# Log Loss: 0.683 (sd 0.08)
+# Accuracy: 60%
+
+# AFTER TUNING
+# Log Loss: 0.668 (sd 0.10)
+# Accuracy: 63%
+```
