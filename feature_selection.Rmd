@@ -1,0 +1,40 @@
+---
+title: "feature_selection"
+author: "Ethan Greig"
+date: "2/2/2019"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(knitr)
+source(purl('import_and_generate_series.Rmd', output = tempfile()))
+```
+
+# %IncMSE or MeanDecreaseAccuracy (MDA): a feature with a low MDA indicates that if its values are permuted in the training set, the model does not perform much worse. This either indicates that the feature is worthless or that the information in this feature can be gathered from other features instead. So a higher MDA feature is likely to have more unique IV compared to all other features.
+
+# IncNodePurity or MeanDecreaseGini (MDG): a feature with a low MDA indicates that when a decision tree uses that feature to split a node, it does not decrease cross entropy with the target. So a high MDA means that a feature provides at least some predictive value at some level of some trees.
+
+# Random Forest (Regression) Feature Importance
+```{r}
+library(randomForest)
+
+# Train a massive random forest so the importance metrics have low noise
+#importance_model_1 <- suppressWarnings(randomForest(`Home_Won` ~ ., data=series_stats_training, ntree=200000, mtry=1, nodesize=64, importance=TRUE))
+print(importance_model_1$importance)
+
+# From each category of stats (Corsis, Goals, Expected Goals, Shooting %, Save %, and Wins), keep just one feature or one pair of For/Against feature, based on IncNodePurity.
+dStats_unpaired <- dStats[!dStats%in%c('dCF._55', 'dCF._all', 'dCA.60_55', 'dCF.60_all', 'dGF._55', 'dGF.60_55', 'dGA.60_55', 'dGF.60_all', 'dGA.60_all', 'dxGF._55', 'dxGA.60_55', 'dxGF.60_55', 'dxGA.60_all', 'dxGF.60_all', 'dSh._all', 'dSv._55', 'dW')]
+series_stats_unpaired_training <- series_stats_training[,c('Home_Won', dStats_unpaired)]
+dStats_unpaired
+```
+
+```{r}
+# derive a set of de-correlated features using Princiapl Component Analysis (PCA)
+
+```
+
+```{r}
+```
+
+
+
